@@ -39,7 +39,7 @@ def shutdown(signal, frame):
 #------------------------------------------------------------------------
 # main()
 
-def main:
+def main():
 	global frameCount
 	while True:
 		frameCount
