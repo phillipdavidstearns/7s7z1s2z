@@ -26,13 +26,13 @@ def debug(message):
 
 def setup():
 	motors.enable()
-	motors.setSpeed( 0, 0 )
+	motors.setSpeeds( 0, 0 )
 
 #------------------------------------------------------------------------
 # shutdown procedure
 
 def shutdown(signal, frame):
-	motors.setSpeed( 0, 0 )
+	motors.setSpeeds( 0, 0 )
 	motors.disable()
 	os._exit(0)
 
