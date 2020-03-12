@@ -45,7 +45,7 @@ def main():
 		frameCount
 		speed1=peakSpeed*sin(2*pi*frameCount/(fps * period[0]))
 		speed2=peakSpeed*sin(2*pi*frameCount/(fps * period[1]))
-		motors.setSpeed(speed1,speed2)	
+		motors.setSpeeds(speed1,speed2)	
 		time.sleep(1/fps)
 
 signal.signal(signal.SIGINT, shutdown)
