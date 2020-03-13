@@ -43,7 +43,7 @@ def setup():
 	motors.enable()
 	motors.setSpeeds( 0, 0 )
 
-def initGPIO()
+def initGPIO():
 	GPIO.setwarnings(False)
 	GPIO.setmode(GPIO.BCM) # use BCM GPIO pin numbers
 	GPIO.setup(pins, GPIO.IN, pull_up_down=GPIO.PUD_DOWN)
