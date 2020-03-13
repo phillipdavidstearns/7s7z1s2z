@@ -53,16 +53,16 @@ def initGPIO():
 # motor 1 encoder pin 1 callback
 def m1Enc():
 	if (GPIO.input(M1_ENC1_PIN) != GPIO.input(M1_ENC2_PIN)):
-    	m1Pos -= 1
-    else:
-    	m1Pos += 1
+		m1Pos -= 1
+	else:
+		m1Pos += 1
 
 # motor 2 encoder pin 1 callback
 def m2Enc():
 	if (GPIO.input(M2_ENC1_PIN) != GPIO.input(M2_ENC2_PIN)):
-    	m2Pos+=1
+		m2Pos+=1
 	else:
-    	m2Pos-=1
+		m2Pos-=1
 
 #------------------------------------------------------------------------
 # shutdown procedure
@@ -101,6 +101,4 @@ setup()
 main()
 
 #------------------------------------------------------------------------
-
-
 
