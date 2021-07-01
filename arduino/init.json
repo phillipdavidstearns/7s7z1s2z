@@ -1,0 +1,94 @@
+// Initialize Variables for Valence... Once Serial communication is established, load these in the setup.
+
+// KEYWORDS FOR STATE MACHINE
+#define CALIBRATE   0 //  pause and allow for mid routine adjustments
+#define OPEN        1 //  move to targetOpen
+#define OPEN_HOLD   2 //  hold on targetOpen
+#define CLOSE       3 //  move to targetClosed
+#define CLOSE_HOLD  4 //  hold on targetClosed
+#define STARTUP     5 //  run EZO-PMP until wires are coated
+
+
+// READ WRITE Parameters
+
+int sigmoidFunction = 2;
+int machineState = STARTUP;
+int lastMachineState = CLOSE;
+int mPositionOffset[] = { 0, 0 };
+boolean isOpen = false;
+boolean isClosed = false;
+unsigned long openDuration = 15000; // the amount of time the movement should take
+unsigned long openHoldDuration = 15000; // duration to hold open in ms
+unsigned long closeDuration = 12500; // the amount of time the movement should take
+unsigned long closeHoldDuration = 17500; // duration to hold open in ms
+unsigned long startupDuration = 5000; // duration to hold open in ms (was 35000)
+boolean moveMotors = true;
+int target = 0;
+const int initTargetOpen = 2550;
+const int initTargetClose = 0;
+const int initPosInc = 3;
+int targetOpen = initTargetOpen;
+int targetClosed = initTargetClose;
+int posInc = initPosInc;
+float powerScalar = 2;
+float powerEasing = 1.0;
+int targetWindow = 3; // +/- window for movement cutoff
+int powerLimit = 480; // +/- maximum power sent to motors
+float powerCutoff = 20; // +/- window for power cutoff
+float speedCutoff = 0.005; // +/- window for speed cutoff
+
+// READ ONLY Parameters
+volatile int mPosition[] = { 0, 0 };
+volatile float mSpeed[] = { 0, 0 };
+unsigned long tCurrent = 0;
+unsigned long tInitial = 0; // initial time when movement was started
+unsigned long tDuration = 1; // the amount of time the movement should take
+unsigned long tFinal = 0; // the time relative to initial time that the movement should complete
+
+// NO ACCESS
+int mPositionLast[] = { 0, 0 };
+float stepAngle = 1.0 / 4200.0;
+
+{
+	// READ WRITE Parameters
+	
+	"sigmoidFunction" : 2, // 0 = natural log, 1 = hyperbolic tan, 2 = sine squared
+	"machineState" : "STARTUP",
+	"lastMachineState" : "CLOSE",
+	"mPositionOffset" : [0, 0],
+	"isOpen" : false,
+	"isClosed" : false,
+	"moveMotors" : true,
+	"openDuration" : 15000, // the amount of time the movement should take
+	"openHoldDuration" : 15000, // duration to hold open in ms
+	"closeDuration" : 12500, // the amount of time the movement should take
+	"closeHoldDuration" : 17500, // duration to hold open in ms
+	"startupDuration" : 5000, // duration to hold open in ms (was 35000)
+	"target" : 0,
+	"targetOpen" : 2550,
+	"targetClosed" : 0,
+	"posInc" : 3,
+	"powerScalar" : 2,
+	"powerEasing" : 1.0,
+	"targetWindow" : 3, // +/- window for movement cutoff
+	"powerLimit" : 480, // +/- maximum power sent to motors
+	"powerCutoff" : 25, // +/- window for power cutoff
+	"speedCutoff" : 0.01, // +/- window for speed cutoff
+
+	// READ ONLY Parameters
+	"mPosition" : [0, 0],
+	"mSpeed" : [0.0, 0.0],
+	"tCurrent" : 0,
+	"tInitial" : 0, // initial time when movement was started
+	"tDuration" : 0, // the amount of time the movement should take
+	"tFinal" : 0, // the time relative to initial time that the movement should complete
+}
+
+// requests:
+
+{ "get" : ["all"] } //
+{ "get" : [ "" ]}
+
+
+
+

@@ -68,9 +68,9 @@ def m2Enc():
 # shutdown procedure
 
 def shutdown(signal, frame):
-	GPIO.cleanup()
 	motors.setSpeeds( 0, 0 )
 	motors.disable()
+	GPIO.cleanup()
 	os._exit(0)
 
 #------------------------------------------------------------------------
