@@ -9,106 +9,89 @@
 		<script src="../static/jquery-3.5.1.min.js"></script>
 		<script src="../static/ws-client.js"></script>
 		<!-- CSS -->
-		<link rel="stylesheet" type="text/css" href="../static/styles.css"/>
+		<link rel="stylesheet" type="text/css" href="../static/style.css"/>
 	</head>
 
 	<body>
 		<div align="center">
 			<h1>Valence Control Panel</h1>
 			<hr />
-			<!-- Stats Stuff-->
+			<table>
+				<tr>
+					<td>
+						<div class="columnLeft">
+							<p>
+								<label>Set Mode:</label>
+								<select id="mode" value=1>
+									<option value=0>Run</option>
+									<option value=1>Calibrate</option>
+								</select>
+							</p>
+							<p>
+								<label>Startup Duration: </label><input type="number" id="startupDuration" value="5000" min="5000" max="50000" /><br />
+								<label>Open Duration: </label><input type="number" id="openDuration" value="15000" min="5000" max="50000" /><br />
+								<label>Open Hold Duration: </label><input type="number" id="openHoldDuration" value="15000" min="5000" max="50000" /><br />
+								<label>Close Duration: </label><input type="number" id="closeDuration" value="12500" min="5000" max="50000" /><br />
+								<label>Close Hold Duration: </label><input type="number" id="closeHoldDuration" value="17500" min="5000" max="50000" /><br />
+								<label>Target Open: </label><input type="number" id="targetOpen" value="2550" min="0" max="5000" /><br />
+								<label>Target Close: </label><input type="number" id="targetClose" value="0" min="-2500" max="5000" /><br />
+								<label>Motor 1 Offset: </label><input type="number" id="m1PositionOffset" value="0" min="-2500" max="2500" /><br />
+								<label>Motor 2 Offset: </label><input type="number" id="m2PositionOffset" value="0" min="-2500" max="2500" /><br />
+							</p>
+							<p>
+								<label>Sigmoid Function:</label>
+								<select id="sigmoidFunction" value=2>
+									<option value=0>Natural Log</option>
+									<option value=1>Arctan</option>
+									<option value=2>Sine Squared</option>
+								</select><br />
+							</p>
+								<label>Power Multiplier: </label><input id="powerScalar" type="number" value="5.0" min="1.0" max="10.0" size=8/><br />
+								<label>Power Easing: </label><input id="powerEasing" type="number" value="0.5" min="0.1" max="1.0" size=8 /><br />
+								<label>Target Window: </label><input id="targetWindow" type="number" value="5" min="-2500" max="2500" size=8 /><br />
+								<label>Power Limit: </label><input id="powerLimit" type="number" value="480" min="0" max="500" size=8 /><br />
+								<label>Power Cutoff Threshold: </label><input id="powerCutoff" type="number" value="25" min="00" max="250" size=8 /><br />
+								<label>Speed Cutoff Threshold: </label><input id="speedCutoff" type="number" value="0.01" min="0.0" max=".25" size=8 />
+							</p>
+							<p>
+								<button id="apply" class="applyButton">Apply Settings</button>		
+							</p>
+						</div>
+					</td>
+					<td>
+						<div class="columnRight">
+							<p>
+								<label>Mode: </label><span id="mode-status">updating</span><br />
+								<label>Machine State: </label><span id="machineState-status">updating</span><br />
+								<label>Last Machine State: </label><span id="lastMachineState-status">updating</span><br />
+								<label>Target: </label><span id="target-status">updating</span><br />
+								<label>Move Motors: </label><span id="moveMotors-status">updating</span><br />
+								<label>Motor 1 Position: </label><span id="m1Position-status">updating</span><br />
+								<label>Motor 2 Position: </label><span id="m2Position-status">updating</span><br />
+								<label>Motor 1 Speed: </label><span id="m1Speed-status">updating</span><br />
+								<label>Motor 2 Speed: </label><span id="m2Speed-status">updating</span><br />
+								<label>Current Time: </label><span id="tCurrent-status">updating</span><br />
+								<label>Initial State Time: </label><span id="tInitial-status">updating</span><br />
+								<label>State Duration: </label><span id="tDuration-status">updating</span><br />
+								<label>State End Time: </label><span id="tFinal-status">updating</span><br />
+								<label>Open Flag: </label><span id="isOpen-status">updating</span><br />
+								<label>Closed Flag: </label><span id="isClosed-status">updating</span><br />
+								<label>Startup Duration: </label><span id="startupDuration-status">updating</span><br />
+								<label>Open Duration: </label><span id="openDuration-status">updating</span><br />
+								<label>Open Hold Duration: </label><span id="openHoldDuration-status">updating</span><br />
+								<label>Close Duration: </label><span id="closeDuration-status">updating</span><br />
+								<label>Close Hold Duration: </label><span id="closeHoldDuration-status">updating</span><br />
+								<label>Target Open: </label><span id="targetOpen-status">updating</span><br />
+								<label>Target Close: </label><span id="targetClose-status">updating</span><br />
+								<label>Motor 1 Offset: </label><span id="m1PositionOffset-status">updating</span><br />
+								<label>Motor 2 Offset: </label><span id="m2PositionOffset-status">updating</span><br />
+							</p>
+						</div>
+					</td>
+				</tr>
 
-			<!--
-				"sigmoidFunction" : 2,
-				"machineState" : 5,
-				"lastMachineState" : 0,
-				"mPositionOffsets" : [ 0, 0 ],
-				"isOpen" : False,
-				"isClosed" : False,
-				"moveMotors" : True,
-				"openDuration" : 15000,
-				"openHoldDuration" : 15000,
-				"closeDuration" : 12500,
-				"closeHoldDuration" : 17500,
-				"startupDuration" : 5000,
-				"target" : 0,
-				"targetOpen" : 2550,
-				"targetClosed" : 0,
-				"powerScalar" : 2.0,
-				"powerEasing" : 1.0,
-				"targetWindow" : 3,
-				"powerLimit" : 480,
-				"powerCutoff" : 25,
-				"speedCutoff" : 0.01
-			-->
-			
-			<div class="row" align="left">
-				<div class="columnLeft">
-					<p>
-						<label>Set State:</label>
-						<select name="dist">
-							<option value="state0">CALIBRATE</option>
-							<option value="state1">OPEN</option>
-							<option value="state2">OPEN_HOLD</option>
-							<option value="state3">CLOSE</option>
-							<option value="state4">CLOSE_HOLD</option>
-							<option value="state5">STARTUP</option>
-						</select><br />
-					</p>
-					<p>
+			</table>
 
-					</p>
-					<p>
-						<label>Startup Duration: </label>
-						<input type="number" name="startupDuration" value="5000" min="5000" max="50000" /><br />
-						<label>Open Duration: </label>
-						<input type="number" name="openDuration" value="15000" min="5000" max="50000" /><br />
-						<label>Open Hold Duration: </label>
-						<input type="number" name="openHoldDuration" value="15000" min="5000" max="50000" /><br />
-						<label>Close Duration: </label>
-						<input type="number" name="closeDuration" value="12500" min="5000" max="50000" /><br />
-						<label>Close Hold Duration: </label>
-						<input type="number" name="closeHoldDuration" value="17500" min="5000" max="50000" /><br />
-					</p>
-					<p>
-					<p>
-						<label>Sigmoid Function:</label>
-						<select name="dist">
-							<option value="sigmoid0">Natural Log</option>
-							<option value="sigmoid1">Arctan</option>
-							<option value="sigmoid2">Sine Squared</option>
-						</select><br />
-					</p>
-						<label>Close Hold Duration: </label><input id="" type="text" /><br />
-						<label>Close Hold Duration: </label><input id="" type="text" /><br />
-						<label>Close Hold Duration: </label><input id="" type="text" /><br />
-						<label>Close Hold Duration: </label><input id="" type="text" /><br />
-						<label>Close Hold Duration: </label><input id="" type="text" />
-					</p>
-					<p>
-						<button id="apply" class="applyButton">Apply Settings</button>		
-					</p>
-				</div>
-			</div>
-
-			<!--LED Stuff-->
-			<div>
-				<button id="green_off" class="button button1">OFF</button>
-				<button id="green_on" class="button button1">ON</button>
-				<br>
-				<button id="blue_off" class="button button2">OFF</button>
-				<button id="blue_on" class="button button2">ON</button>
-				<br>
-				<button id="red_off" class="button button3">OFF</button>
-				<button id="red_on" class="button button3">ON</button>
-				<br>
-				<button id="white_off" class="button button4">OFF</button>
-				<button id="white_on" class="button button4">ON</button>
-			</div>
-			<hr />
-			<div>
-				<div id="">...waiting for data...</div>
-			</div>
 			<hr />
 			Websocket status:
 			<br />

@@ -1,0 +1,15 @@
+/* spacing */
+input {
+}
+
+table {
+  table-layout: fixed;
+  border-collapse: collapse;
+  width: 100%;
+}
+
+td {
+  align-items : center;
+  width : 50%;
+  padding: 20px;
+}

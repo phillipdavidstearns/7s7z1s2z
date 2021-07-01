@@ -18,7 +18,7 @@ params = [
 	"startupDuration",
 	"target",
 	"targetOpen",
-	"targetClosed",
+	"targetClose",
 	"powerScalar",
 	"powerEasing",
 	"targetWindow",
@@ -48,7 +48,7 @@ variables = {
 	"startupDuration" : 5000,
 	"target" : 0,
 	"targetOpen" : 2550,
-	"targetClosed" : 0,
+	"targetClose" : 0,
 	"powerScalar" : 2.0,
 	"powerEasing" : 1.0,
 	"targetWindow" : 3,
@@ -62,7 +62,6 @@ def main():
 	timeout=1
 	while True:
 		command={}
-		data = []
 		command['get']="all"
 		# command['set']=variables
 		print("command: ",command)
@@ -72,13 +71,14 @@ def main():
 		while now-start < timeout and serial.in_waiting > 0:
 			now=time()
 			pass
-
+		data = []
 		while True:
 			line = serial.readline().decode('utf-8').rstrip()
 			if line:
 				data.append(line)
 			else:
 				break
+
 		if len(data) > 0:
 			# print("len(data):",len(data),", data: ", data)
 			for entry in data:
@@ -91,7 +91,6 @@ def main():
 				except Exception as e:
 					# print(type(e),e)
 					pass
-		sleep(1)
 		
 if __name__ == "__main__":
 	try:

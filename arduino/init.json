@@ -90,5 +90,12 @@ float stepAngle = 1.0 / 4200.0;
 { "get" : [ "" ]}
 
 
-
+{
+	"type":"request",
+	"request":"get",
+	"parameters": [
+		"name1",
+		"name2",
+	]
+}
 

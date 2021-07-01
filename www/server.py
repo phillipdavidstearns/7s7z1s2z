@@ -7,10 +7,44 @@ from tornado.web import Application, RequestHandler, StaticFileHandler
 from tornado.httpserver import HTTPServer
 from tornado.ioloop import IOLoop
 from serial import Serial, SerialException, SerialTimeoutException
-from time import sleep
+from time import sleep, time
 
 # Tonado server port
 PORT = 80
+serial = Serial('/dev/ttyACM0', 115200, timeout=.1)
+
+def sendToArduino(ws,message):
+	parsed={}
+	
+	try:
+		parsed = json.loads(message)	
+	except Exception as e:
+		print(type(e),e)
+		pass
+
+	if 'set' in parsed:
+		serial.write(bytes(message,'utf-8'))
+
+	if 'get' in parsed and parsed['get'] == "all":
+		serial.write(bytes(message,'utf-8'))
+		sleep(.5)
+		data = []
+		while True:
+			line = serial.readline().decode('utf-8').rstrip()
+			if line:
+				data.append(line)
+			else:
+				break
+		if len(data) > 0:
+			# print("len(data):",len(data),", data: ", data)
+			for entry in data:
+				try:
+					response = json.loads(entry)
+					ws.write_message(entry)
+				except Exception as e:
+					print(type(e),e)
+					pass
+	
 
 def constrain( _val, _min, _max):
 	return min(_max, max(_min,_val))
@@ -26,9 +60,7 @@ class WSHandler(WebSocketHandler):
 	def on_close(self):
 		print ('[WS] Connection was closed.')
 	def on_message(self, message):
-		# change to json parsing
-		# message = json.loads(message)
-		print ('[WS] Incoming message:', message)
+		sendToArduino(self, message)
 
 class DefaultHandler(RequestHandler):
 	def prepare(self):
@@ -50,7 +82,7 @@ def make_app():
 
 if __name__ == "__main__":
 	try:
-		serial = Serial('/dev/ttyACM0', 115200, timeout=.1)
+
 		application = make_app()
 		application.listen(PORT)
 		http_server = HTTPServer(application,
@@ -65,8 +97,9 @@ if __name__ == "__main__":
 		main_loop.start()
 	except Exception as e:
 		# Ooops message
-		print ("Exception raised: ", e)
+		print ("Exception raised: ",type(e), e)
 	finally:
+		print()
 		print ("Have a nice day! :)")
 		exit()
 #End of Program

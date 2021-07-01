@@ -9,8 +9,8 @@
 #define CALIBRATE   0 //  pause and allow for mid routine adjustments
 #define OPEN        1 //  move to targetOpen
 #define OPEN_HOLD   2 //  hold on targetOpen
-#define CLOSE       3 //  move to targetClosed
-#define CLOSE_HOLD  4 //  hold on targetClosed
+#define CLOSE       3 //  move to targetClose
+#define CLOSE_HOLD  4 //  hold on targetClose
 #define STARTUP     5 //  run EZO-PMP until wires are coated
 
 // Interrupt pin numbers for Motor Encoders
@@ -61,7 +61,7 @@ unsigned long tFinal = 0; // the time relative to initial time that the movement
 // Position Variables
 int target = 0;
 int targetOpen = 2550;
-int targetClosed = 0;
+int targetClose = 0;
 
 // Power Variables
 float powerScalar = 2.0;
@@ -198,7 +198,7 @@ void stateMachine() {
         tInitial = tCurrent;
         machineState = OPEN_HOLD;
       } else {
-        target = int(sigmoid(progress(), sigmoidFunction) * float(targetOpen - targetClosed));
+        target = int(sigmoid(progress(), sigmoidFunction) * float(targetOpen - targetClose));
         clearPositionFlags();
       }
       break;
@@ -221,7 +221,7 @@ void stateMachine() {
         tInitial = tCurrent;
         machineState = CLOSE_HOLD;
       } else {
-        target = int((1 - sigmoid(progress(), sigmoidFunction)) * float(targetOpen - targetClosed));
+        target = int((1 - sigmoid(progress(), sigmoidFunction)) * float(targetOpen - targetClose));
         clearPositionFlags();
       }
       break;
@@ -233,7 +233,7 @@ void stateMachine() {
         machineState = OPEN;
         clearPositionFlags();
       } else {
-        target = targetClosed;
+        target = targetClose;
       }
       break;
     case 5: // startup
@@ -280,11 +280,11 @@ void stateMachine() {
 //        break;
 //
 //      case 6: // set close
-//        targetClosed = target;
+//        targetClose = target;
 //        break;
 //
 //      case 7: // reset close
-//        targetClosed = initTargetClose;
+//        targetClose = initTargetClose;
 //        break;
 //
 //      case 8: // increase speed
@@ -292,7 +292,7 @@ void stateMachine() {
 //        break;
 //
 //      case 9: // decrease speed
-//        //target = targetClosed;
+//        //target = targetClose;
 //        break;
 //
 //      case 10: // reset speed
@@ -360,15 +360,12 @@ void stateMachine() {
 // Json stuff
 
 void applySettings(JsonVariant _set) {
-  DynamicJsonDocument debug(2048);
+  StaticJsonDocument<32> message;
   if (_set["sigmoidFunction"] ) sigmoidFunction = _set["sigmoidFunction"];
   if (_set["machineState"]) machineState = _set["machineState"];
   if (_set["lastMachineState"]) lastMachineState = _set["lastMachineState"];
-  if (_set["mPositionOffsets"]) {
-    JsonArray offsets = debug.createNestedArray("mPositionOffsets");
-    offsets.add(_set["mPositionOffsets"][0]);
-    offsets.add(_set["mPositionOffsets"][1]);
-  }
+  if (_set["m1PositionOffset"]) mPositionOffsets[0] = _set["m1PositionOffset"];
+  if (_set["m2PositionOffset"]) mPositionOffsets[1] = _set["m2PositionOffset"];
   if (_set["isOpen"]) isOpen = _set["isOpen"];
   if (_set["isClosed"]) isClosed = _set["isClosed"];
   if (_set["moveMotors"]) moveMotors = _set["moveMotors"];
@@ -379,13 +376,16 @@ void applySettings(JsonVariant _set) {
   if (_set["startupDuration"]) startupDuration = _set["startupDuration"];
   if (_set["target"]) target = _set["target"];
   if (_set["targetOpen"]) targetOpen = _set["targetOpen"];
-  if (_set["targetClosed"]) targetClosed = _set["targetClosed"];
+  if (_set["targetClose"]) targetClose = _set["targetClose"];
   if (_set["powerScalar"]) powerScalar = _set["powerScalar"];
   if (_set["powerEasing"]) powerEasing = _set["powerEasing"];
   if (_set["targetWindow"]) targetWindow = _set["targetWindow"];
   if (_set["powerLimit"]) powerLimit = _set["powerLimit"];
   if (_set["powerCutoff"]) powerCutoff = _set["powerCutoff"];
   if (_set["speedCutoff"]) speedCutoff = _set["speedCutoff"];
+  message["message"]="Settings applied";
+  serializeJson(message,Serial);
+  Serial.println();
 }
 
 void buildSnapshot(String _list[], int _size) {
@@ -398,10 +398,10 @@ void buildSnapshot(String _list[], int _size) {
       snapshot["machineState"] = machineState;
     } else if (theKey == "lastMachineState") {
       snapshot["lastMachineState"] = lastMachineState;
-    } else if (theKey == "mPositionOffsets") {
-      JsonArray offsets = snapshot.createNestedArray("mPositionOffsets");
-      offsets.add(mPositionOffsets[0]);
-      offsets.add(mPositionOffsets[1]);
+    } else if (theKey == "m1PositionOffset") {
+      snapshot["m1PositionOffset"]=mPositionOffsets[0];
+    } else if (theKey == "m2PositionOffset") {
+      snapshot["m2PositionOffset"]=mPositionOffsets[1];
     } else if (theKey == "isOpen") {
       snapshot["isOpen"] = isOpen;
     } else if (theKey == "isClosed") {
@@ -422,8 +422,8 @@ void buildSnapshot(String _list[], int _size) {
       snapshot["target"] = target;
     } else if (theKey == "targetOpen") {
       snapshot["targetOpen"] = targetOpen;
-    } else if (theKey == "targetClosed") {
-      snapshot["targetClosed"] = targetClosed;
+    } else if (theKey == "targetClose") {
+      snapshot["targetClose"] = targetClose;
     } else if (theKey == "powerScalar") {
       snapshot["powerScalar"] = powerScalar;
     } else if (theKey == "powerEasing") {
@@ -436,14 +436,14 @@ void buildSnapshot(String _list[], int _size) {
       snapshot["powerCutoff"] = powerCutoff;
     } else if (theKey == "speedCutoff") {
       snapshot["speedCutoff"] = speedCutoff;
-    } else if (theKey == "mPositions") {
-      JsonArray positions = snapshot.createNestedArray("mPositions");
-      positions.add(mPositions[0]);
-      positions.add(mPositions[1]);
-    } else if (theKey == "mSpeeds") {
-      JsonArray speeds = snapshot.createNestedArray("mSpeeds");
-      speeds.add(mPositions[0]);
-      speeds.add(mPositions[1]);
+    } else if (theKey == "m1Position") {
+      snapshot["m1Position"] = mPositions[0];
+    } else if (theKey == "m2Position") {
+      snapshot["m2Position"] = mPositions[1];
+    } else if (theKey == "m1Speed") {
+      snapshot["m1Speed"]=mSpeeds[0];
+    } else if (theKey == "m2Speed") {
+      snapshot["m2Speed"]=mSpeeds[0];
     } else if (theKey == "tCurrent") {
       snapshot["tCurrent"] = tCurrent;
     } else if (theKey == "tInitial") {
@@ -465,9 +465,8 @@ void sendSnapshot() {
   snapshot["sigmoidFunction"] = sigmoidFunction;
   snapshot["machineState"] = machineState;
   snapshot["lastMachineState"] = lastMachineState;
-  JsonArray offsets = snapshot.createNestedArray("mPositionOffsets");
-  offsets.add(mPositionOffsets[0]);
-  offsets.add(mPositionOffsets[1]);
+  snapshot["m1PositionOffset"] = mPositionOffsets[0];
+  snapshot["m2PositionOffset"] = mPositionOffsets[1];
   snapshot["isOpen"] = isOpen;
   snapshot["isClosed"] = isClosed;
   snapshot["moveMotors"] = moveMotors;
@@ -478,19 +477,17 @@ void sendSnapshot() {
   snapshot["startupDuration"] = startupDuration;
   snapshot["target"] = target;
   snapshot["targetOpen"] = targetOpen;
-  snapshot["targetClosed"] = targetClosed;
+  snapshot["targetClose"] = targetClose;
   snapshot["powerScalar"] = powerScalar;
   snapshot["powerEasing"] = powerEasing;
   snapshot["targetWindow"] = targetWindow;
   snapshot["powerLimit"] = powerLimit;
   snapshot["powerCutoff"] = powerCutoff;
   snapshot["speedCutoff"] = speedCutoff;
-  JsonArray positions = snapshot.createNestedArray("mPositions");
-  positions.add(mPositions[0]);
-  positions.add(mPositions[1]);
-  JsonArray speeds = snapshot.createNestedArray("mSpeeds");
-  speeds.add(mSpeeds[0]);
-  speeds.add(mSpeeds[1]);
+  snapshot["m1Position"] = mPositions[0];
+  snapshot["m2Position"] = mPositions[1];
+  snapshot["m1Speed"] = mSpeeds[0];
+  snapshot["m2Speed"] = mSpeeds[1];
   snapshot["tCurrent"] = tCurrent;
   snapshot["tInitial"] = tInitial; // initial time when movement was started
   snapshot["tDuration"] = tDuration; // the amount of time the movement should take
@@ -529,14 +526,6 @@ void parseSerial() {
       serializeJson(error, Serial);
       Serial.println();
     }
-  }
-}
-
-void serialEvent() {
-  while (Serial.available()) {
-    serialReceived = Serial.readStringUntil('\n');
-    parseSerial();
-    serialReceived = "";
   }
 }
 
@@ -584,4 +573,9 @@ void setup() {
 void loop() {
   stateMachine();
   if (moveMotors) moveToTarget(target);
+  if (Serial.available()) {
+    serialReceived = Serial.readStringUntil('\n');
+    parseSerial();
+    serialReceived = "";
+  }
 }
