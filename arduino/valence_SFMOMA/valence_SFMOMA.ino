@@ -149,6 +149,9 @@ void clearPositionFlags() {
 void stopOnFault() {
   if (mDriver.getM1Fault() || mDriver.getM2Fault()) {
     mDriver.disableDrivers();
+    digitalWrite(LED_BUILTIN,0);
+    StaticJsonDocument<64> error;
+    error["message"]="Error: Driver Motor Fault.";
     while (1) continue;
   }
 }
@@ -564,6 +567,7 @@ void setup() {
   message["message"] = "Valence by Tauba Auerbach.";
   serializeJson(message, Serial);
   Serial.println();
+  digitalWrite(LED_BUILTIN,0);
   tInitial = millis();
 }
 

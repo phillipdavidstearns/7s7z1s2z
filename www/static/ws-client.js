@@ -81,7 +81,6 @@ $(document).ready(function(){
 		};
 		data = JSON.stringify(json);
 		ws.send(data);
-		console.log(data);
 	};
 
 	function displayStatus(status){
