@@ -1,10 +1,10 @@
 [Unit]
-Description=Valence
+Description=Valence Dev Test App
 After=network.target, pigpiod.service
 
 [Service]
 Type=simple
-ExecStart=/usr/bin/python3 /usr/local/bin/valence/server.py
+ExecStart=/usr/bin/python3 /home/membrane/valence/python/server.py
 RestartSec=5
 Restart=always
 TimeoutSec=10

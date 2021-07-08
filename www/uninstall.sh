@@ -1,6 +1,9 @@
 #!/bin/bash
 
-sudo systemctl stop rover.service
-sudo rm -rf /usr/local/bin/rover
-sudo rm /lib/systemd/system/rover.service
+INSTALL_DIR="/usr/local/bin/valence"
+SERVICE="valence.service"
+
+sudo systemctl stop $SERVICE
+sudo rm /lib/systemd/system/$SERVICE
+sudo rm -rf $INSTALL_DIR
 sudo systemctl daemon-reload

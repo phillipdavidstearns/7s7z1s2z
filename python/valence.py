@@ -1,14 +1,12 @@
 #!/usr/bin/python3
 
-import pigpio
-from rotary_encoder import decoder
 from math import log, pow, sin, tanh, pi
 from dual_g2_hpmd_rpi import motors, MAX_SPEED
-from time import sleep, time
+import RPi.GPIO as GPIO
+import signal
 import sys
-
-m1Pos = 0
-m2Pos = 0
+import random
+from time import sleep, time
 
 # https://pinout.xyz/
 M1_ENC1_PIN=4
@@ -22,37 +20,63 @@ OPEN_HOLD = 2
 CLOSE =  3
 CLOSE_HOLD = 4
 
-def m1Callback(way):
+m1Pos = 0
+m2Pos = 0
+
+pins = [ M1_ENC1_PIN,
+		 M1_ENC2_PIN,
+		 M2_ENC1_PIN,
+		 M2_ENC2_PIN ]
+
+
+#------------------------------------------------------------------------
+#	verbose or debug mode
+
+def debug(message):
+	if verbose:
+		print(message)
+
+#------------------------------------------------------------------------
+#
+
+def setup():
+	GPIO.setwarnings(True)
+	GPIO.setmode(GPIO.BCM) # use BCM GPIO pin numbers
+	GPIO.setup(pins, GPIO.IN, pull_up_down=GPIO.PUD_DOWN)
+	GPIO.add_event_detect(M1_ENC1_PIN, GPIO.BOTH, callback=m1Enc)
+	GPIO.add_event_detect(M2_ENC1_PIN, GPIO.BOTH, callback=m2Enc)
+	motors.enable()
+	motors.setSpeeds( 0, 0 )
+
+# motor 1 encoder pin 1 callback
+def m1Enc(value):
 	global m1Pos
-	m1Pos -= way
+	if (GPIO.input(M1_ENC1_PIN) != GPIO.input(M1_ENC2_PIN)):
+		m1Pos += 1
+	else:
+		m1Pos -= 1
 
-def m2Callback(way):
+# motor 2 encoder pin 1 callback
+def m2Enc(value):
 	global m2Pos
-	m2Pos -= way
-
-GPIO = pigpio.pi()
-m1Decoder = decoder(GPIO, M1_ENC1_PIN, M1_ENC2_PIN, m1Callback)
-m2Decoder = decoder(GPIO, M2_ENC1_PIN, M2_ENC2_PIN, m2Callback)
+	if (GPIO.input(M2_ENC1_PIN) != GPIO.input(M2_ENC2_PIN)):
+		m2Pos +=1
+	else:
+		m2Pos -=1
 
 #------------------------------------------------------------------------
 # shutdown procedure
 
 def shutdown():
-	motors.setSpeeds(0,0)
-	motors.disable()
-	m1Decoder.cancel()
-	m2Decoder.cancel()
-	GPIO.stop()
+	# motors.setSpeeds(0,0)
+	# motors.disable()
+	GPIO.cleanup()
 
 #------------------------------------------------------------------------
 # helper functions
 
 def constrain( _val, _min, _max):
 	return min(_max, max(_min,_val))
-
-
-def ease(_val, _target, _ease):
-  return _ease * (_target - _val)
 
 def sigmoid(_value, _function=-1):
 	_value = constrain(_value, 0.0, 1.0)
@@ -69,19 +93,24 @@ def sigmoid(_value, _function=-1):
 # main()
 
 def main():
-	cpr = 131*64
-	motors.enable()
-	motors.setSpeeds( 0, 0 )
-	powerEasing=1
-	power = 0
-	powerLimit = 400
-	powerScalar = 1
+
+	def interruptHandler(signal, frame):
+		print()
+		print("Interrupt (ID: {}) has been caught. Cleaning up...".format(signal))
+		sys.exit()
+
+	signal.signal(signal.SIGINT, interruptHandler)
+	signal.signal(signal.SIGTERM, interruptHandler)
+
+	speed = 0
+	mult = 2
 	sigmoidFunction=2
-	targetOpen = cpr*2/3
+	targetOpen = 2500
 	targetClose = 0
 	target = 0
+	targetLast = 0 
 	tDuration = 10
-	tEnd = tDuration
+	tEnd = 0
 	tCurrent = 0
 	tLast = 0
 	progress = 0
@@ -120,20 +149,19 @@ def main():
 				state = OPEN
 
 		
-		force = powerScalar*(target - m1Pos)
-		power += ease(power, force, powerEasing)
-		power = constrain(power, -powerLimit, powerLimit)
+		speed = mult * (target - m1Pos)
 
-		motors.setSpeeds(power,0)
+		motors.setSpeeds(speed,0)
 		if motors.getFaults():
 			break
 
-		# if (tCurrent - tLast > 1):
-		# 	print ("state: ", state," | power: ",power, " | target: ", target,"left encoder count: ",m1Pos," | right encoder count: ",m2Pos)
-		# 	tLast=tCurrent
+		if (tCurrent - tLast > 1):
+			print ("state: ", state," | speed: ",speed, " | target: ", target,"left encoder count: ",m1Pos," | right encoder count: ",m2Pos)
+			tLast=tCurrent
 
 if __name__ == "__main__":
 	try:
+		setup()
 		main()
 	except Exception as e:
 		print("Exception: ",e)

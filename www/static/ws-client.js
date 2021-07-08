@@ -38,14 +38,13 @@ $(document).ready(function(){
 	var ws = null;
 	var ws_interval = 2000; //sets the update interval in ms
 
-	//TO DO: implement SSL websockets 
-	if (window.location.protocol == "http:"){
-		ws = new WebSocket("ws://" + window.location.host + WEBSOCKET_ROUTE);
-	} else if(window.location.protocol == "https:"){
-		ws = new WebSocket("wss://" + window.location.host + WEBSOCKET_ROUTE);
-	};
+	function openWebsocket(){
 
-	if (ws != null){
+		if (window.location.protocol == "http:"){
+			ws = new WebSocket("ws://" + window.location.host + WEBSOCKET_ROUTE);
+		} else if(window.location.protocol == "https:"){
+			ws = new WebSocket("wss://" + window.location.host + WEBSOCKET_ROUTE);
+		};
 		ws.onopen = function(evt) {
 			$("#ws-status").html("Connected");
 			getSettings = setInterval(getValenceSettings, ws_interval);
@@ -53,7 +52,11 @@ $(document).ready(function(){
 		ws.onmessage = function(evt) {
 			message = JSON.parse(evt.data)
 			if ('message' in message){
-				console.log(message['message'])
+				if (message['message'] == "Settings applied"){
+					document.getElementById("apply-status").innerHTML=message['message'];
+				} else {
+					console.log(message['message']);
+				}
 			} else {
 				displayStatus(message);
 			};
@@ -61,43 +64,96 @@ $(document).ready(function(){
 		ws.onclose = function(evt) {
 			$("#ws-status").html("Disconnected");
 			clearInterval(getSettings);
+			ws = null
+			// if we get disconnected, attempt to reconnect in 5s
+			setTimeout(function(){openWebsocket()}, 5000);
 		};
 	};
+	openWebsocket();
 
-	var mode = document.getElementById("mode");
-	var sigmoid = document.getElementById("sigmoidFunction");
-
-	document.getElementById("mode").onchange = function () {
-		$("#mode-status").html(mode.value);
-		console.log(mode.value);
-	};
+	// var mode = document.getElementById("mode");
+	// document.getElementById("mode").onchange = function () {
+	// 	$("#mode-status").html(mode.value);
+	// };
+	
+	// document.getElementById("goto").onchange = function () {
+	// 	var setState = document.getElementById("goto");
+	// 	var request = {};
+	// 	request.goto = setState.value;
+	// 	console.log(JSON.stringify(request));
+	// 	ws.send(JSON.stringify(request));
+	// };
 
 	document.getElementById('apply').onclick = function () {
-		var elements = document.getElementsByTagName('input');
-		var json = { 'set':{}};
-		json[sigmoid.id] = sigmoid.value;
-		for (var i = 0 ; i < elements.length; i++){
-			json.set[elements[i].id]=elements[i].value;
+		if (ws != null){
+			document.getElementById("apply-status").innerHTML="Applying changes...";
+			var sigmoid = document.getElementById("sigmoidFunction");
+			var elements = document.getElementsByTagName('input');
+			var json = { 'set':{}};
+			json.set[sigmoid.id] = sigmoid.value;
+			for (var i = 0 ; i < elements.length; i++){
+				json.set[elements[i].id]=elements[i].value;
+			};
+			data = JSON.stringify(json);
+			ws.send(data);
+		} else {
+			console.log("Websocket is disconnected. Please, wait until connection is re-established")
 		};
-		data = JSON.stringify(json);
-		ws.send(data);
 	};
 
 	function displayStatus(status){
 		for(key in status){
 			id = key.concat('-status')
 			try {
-				document.getElementById(id).innerHTML=String(status[key]);
+				if( id == "machineState-status" ){
+					var value = String(status[key]);
+					var state = "";
+					switch(value){
+						case "0":
+							state = "STARTUP";
+						break;
+						case "1":
+							state = "OPENING";
+						break;
+						case "2":
+							state = "HOLDING OPEN";
+						break;
+						case "3":
+							state = "CLOSING";
+						break;
+						case "4":
+							state = "HOLDING CLOSED";
+						break;
+					};
+					document.getElementById(id).innerHTML=state;	
+				} else if( id == "sigmoidFunction-status" ){
+					var value = String(status[key]);
+					var state = "";
+					switch(value){
+						case "0":
+							state = "Natural Log";
+						break;
+						case "1":
+							state = "Arc Tan";
+						break;
+						case "2":
+							state = "Sine Squared";
+						break;
+					};
+					document.getElementById(id).innerHTML=state;	
+				} else {
+					document.getElementById(id).innerHTML=String(status[key]);
+				};
 			} catch (error) {
 				// console.log(id);
 				// console.error(error);
 			};
 		};
-	}
+	};
 
 	function getValenceSettings(){
-		var request = {}
-		request.get="all"
+		var request = {};
+		request.get="all";
 		ws.send(JSON.stringify(request));
 	};
 });
