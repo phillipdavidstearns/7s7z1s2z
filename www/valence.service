@@ -1,6 +1,7 @@
 [Unit]
 Description=Valence
-After=network.target, pigpiod.service
+After=network.target
+Wants=pigpiod.service
 
 [Service]
 Type=simple

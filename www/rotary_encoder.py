@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 import pigpio
 
-class decoder:
+class Decoder:
 	def __init__(self, pi, gpioA, gpioB, callback):
 		self.pi = pi
 		self.gpioA = gpioA
@@ -63,9 +63,9 @@ if __name__ == "__main__":
 
 	pos = 0
 
-	def callback(way):
+	def callback(step):
 		global pos
-		pos += way
+		pos += step
 		print("pos={}".format(pos))
 
 	pi = pigpio.pi()
@@ -73,4 +73,3 @@ if __name__ == "__main__":
 	time.sleep(300)
 	decoder.cancel()
 	pi.stop()
-

@@ -1,13 +1,14 @@
 #!/usr/bin/python3
-from threading import Thread
+
 import pigpio
-from rotary_encoder import decoder
-from math import log, pow, sin, tanh, pi
 from dual_g2_hpmd_rpi import motors, MAX_SPEED
+from rotary_encoder import Decoder
+from threading import Thread
+from math import log, pow, sin, tanh, pi
 from time import time, sleep
 import sys
 
-class motorController(Thread):
+class MotorController(Thread):
 	def __init__(self):
 		# https://pinout.xyz/
 		self.M1_ENC1_PIN=4
@@ -22,8 +23,8 @@ class motorController(Thread):
 		self.GPIO = pigpio.pi()
 		self.m1Pos = 0
 		self.m2Pos = 0
-		self.m1Decoder = decoder(self.GPIO, self.M1_ENC1_PIN, self.M1_ENC2_PIN, self.m1Callback)
-		self.m2Decoder = decoder(self.GPIO, self.M2_ENC1_PIN, self.M2_ENC2_PIN, self.m2Callback)
+		self.m1Decoder = Decoder(self.GPIO, self.M1_ENC1_PIN, self.M1_ENC2_PIN, self.m1Callback)
+		self.m2Decoder = Decoder(self.GPIO, self.M2_ENC1_PIN, self.M2_ENC2_PIN, self.m2Callback)
 		self.message = ""
 		self.cpr = 131*64
 		self.powerEasing=1
@@ -45,7 +46,6 @@ class motorController(Thread):
 		self.state = self.STARTUP # 0 = startup
 		Thread.__init__(self)
 		self.daemon = True
-		self.start()
 
 	def m1Callback(self, value):
 		self.m1Pos -= value
@@ -63,15 +63,25 @@ class motorController(Thread):
 		self.m2Decoder.cancel()
 		self.GPIO.stop()
 
+	def pause(self):
+		return
+
+	def resume(self):
+		return
+
+	def startup(self):
+		motors.enable()
+		motors.setSpeeds(0,0)
+		
 #------------------------------------------------------------------------
 # helper functions
 	
 	def send(self, message):
-		print("got message: ", message)
+		self.message = message
+		print("message: ", message)
 
 	def constrain(self, _val, _min, _max):
 		return min(_max, max(_min,_val))
-
 
 	def ease(self,_val, _target, _ease):
 		return _ease * (_target - _val)
@@ -86,18 +96,11 @@ class motorController(Thread):
 			return pow(sin(0.5 * pi * _value), 2)
 		else: # default to linear
 			return _value
-	
-	def main(self):
-		motors.enable()
-		motors.setSpeeds( 0, 0 )
+		
+	def motionControl(self):
 		while True:
-
-			if self.message:
-				print("got message: ", self.message)
-				self.message=""
-
 			self.tCurrent = time()
-			
+			# State Machine
 			if self.state == self.STARTUP:
 				if self.tCurrent > self.tEnd:
 					self.tEnd = self.tCurrent + self.openDuration
@@ -127,39 +130,32 @@ class motorController(Thread):
 				if self.tCurrent > self.tEnd:
 					self.tEnd = self.tCurrent + self.openDuration
 					self.state = self.OPEN
-
+			
+			# Calculate and apply speeds
 			force = self.powerScalar*(self.target - self.m1Pos)
 			self.power += self.ease(self.power, force, self.powerEasing)
 			self.power = self.constrain(self.power, -self.powerLimit, self.powerLimit)
-
 			motors.setSpeeds(self.power,0)
 			if motors.getFaults():
 				raise Exception("Motor Fault Detected")
-
+		
 		# if (tCurrent - tLast > 1):
 		# 	print ("state: ", state," | power: ",power, " | target: ", target,"left encoder count: ",m1Pos," | right encoder count: ",m2Pos)
 		# 	tLast=tCurrent
 
 	def run(self):
-		print("Starting motorController")
-		try:
-			self.main()
-		except Exception as e:
-			print("Exception: ",e)
-
-
+		self.startup()
+		self.motionControl()
 
 if __name__ == "__main__":
-	mc = motorController()
-	print(mc.__dict__)
+	mc = MotorController()
 	try:
-		print("Entering main loop")
+		mc.start()
 		while True:
 			mc.send("Future JSON data")
 			sleep(1)
-			pass
 	except Exception as e:
 		print("Exception: ",e)
 	finally:
+		mc.stop()
 		sys.exit()
-
