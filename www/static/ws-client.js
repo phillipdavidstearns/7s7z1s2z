@@ -36,10 +36,9 @@ $(document).ready(function(){
 
 	var WEBSOCKET_ROUTE = "/ws";
 	var ws = null;
-	var ws_interval = 2000; //sets the update interval in ms
+	var ws_interval = 1000; //sets the update interval in ms
 
 	function openWebsocket(){
-
 		if (window.location.protocol == "http:"){
 			ws = new WebSocket("ws://" + window.location.host + WEBSOCKET_ROUTE);
 		} else if(window.location.protocol == "https:"){

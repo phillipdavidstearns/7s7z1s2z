@@ -30,17 +30,19 @@
 								<label>Sigmoid Function: </label><span id="sigmoidFunction-status">updating</span><br />
 								<!--label>Last Machine State: </label><span id="lastMachineState-status">updating</span><br /-->
 								<label>Target: </label><span id="target-status">updating</span><br />
+								<label>Motor 1 Power: </label><span id="m1Power-status">updating</span><br />
+								<label>Motor 2 Power: </label><span id="m2Power-status">updating</span><br />
 								<!--label>Move Motors: </label><span id="moveMotors-status">updating</span><br /-->
 								<label>Motor 1 Position: </label><span id="m1Position-status">updating</span><br />
 								<label>Motor 2 Position: </label><span id="m2Position-status">updating</span><br />
-								<label>Motor 1 Speed: </label><span id="m1Speed-status">updating</span><br />
-								<label>Motor 2 Speed: </label><span id="m2Speed-status">updating</span><br />
+								<!--label>Motor 1 Speed: </label><span id="m1Speed-status">updating</span><br /-->
+								<!--label>Motor 2 Speed: </label><span id="m2Speed-status">updating</span><br /-->
 								<label>Current Time: </label><span id="tCurrent-status">updating</span><br />
-								<label>Initial State Time: </label><span id="tInitial-status">updating</span><br />
-								<label>State Duration: </label><span id="tDuration-status">updating</span><br />
+								<!--label>Initial State Time: </label><span id="tInitial-status">updating</span><br /-->
+								<!-- label>State Duration: </label><span id="tDuration-status">updating</span><br / -->
 								<label>State End Time: </label><span id="tFinal-status">updating</span><br />
-								<label>Open Flag: </label><span id="isOpen-status">updating</span><br />
-								<label>Closed Flag: </label><span id="isClosed-status">updating</span><br />
+								<!-- <label>Open Flag: </label><span id="isOpen-status">updating</span><br /> -->
+								<!-- <label>Closed Flag: </label><span id="isClosed-status">updating</span><br /> -->
 								<label>Startup Duration: </label><span id="startupDuration-status">updating</span><br />
 								<label>Open Duration: </label><span id="openDuration-status">updating</span><br />
 								<label>Open Hold Duration: </label><span id="openHoldDuration-status">updating</span><br />
@@ -48,8 +50,8 @@
 								<label>Close Hold Duration: </label><span id="closeHoldDuration-status">updating</span><br />
 								<label>Target Open: </label><span id="targetOpen-status">updating</span><br />
 								<label>Target Close: </label><span id="targetClose-status">updating</span><br />
-								<label>Motor 1 Offset: </label><span id="m1PositionOffset-status">updating</span><br />
-								<label>Motor 2 Offset: </label><span id="m2PositionOffset-status">updating</span><br />
+								<!-- <label>Motor 1 Offset: </label><span id="m1PositionOffset-status">updating</span><br /> -->
+								<!-- <label>Motor 2 Offset: </label><span id="m2PositionOffset-status">updating</span><br /> -->
 						</div>
 					</td>
 					<td>
@@ -67,27 +69,27 @@
 								<option value=3>STARTUP</option>
 							</select>
 							<br /-->
-							<label>Startup Duration: </label><input type="number" id="startupDuration" value="5000" min="5000" max="50000" /><br />
-							<label>Open Duration: </label><input type="number" id="openDuration" value="15000" min="5000" max="50000" /><br />
-							<label>Open Hold Duration: </label><input type="number" id="openHoldDuration" value="15000" min="5000" max="50000" /><br />
-							<label>Close Duration: </label><input type="number" id="closeDuration" value="12500" min="5000" max="50000" /><br />
-							<label>Close Hold Duration: </label><input type="number" id="closeHoldDuration" value="17500" min="5000" max="50000" /><br />
-							<label>Target Open: </label><input type="number" id="targetOpen" value="2550" min="0" max="5000" /><br />
-							<label>Target Close: </label><input type="number" id="targetClose" value="0" min="-2500" max="5000" /><br />
-							<label>Motor 1 Offset: </label><input type="number" id="m1PositionOffset" value="0" min="-2500" max="2500" /><br />
-							<label>Motor 2 Offset: </label><input type="number" id="m2PositionOffset" value="0" min="-2500" max="2500" /><br />
+							<label>Startup Duration: </label><input type="number" id="startupDuration" min="5.0" max="25.0" /><br />
+							<label>Open Duration: </label><input type="number" id="openDuration" min="5.0" max="25.0" /><br />
+							<label>Open Hold Duration: </label><input type="number" id="openHoldDuration" min="5.0" max="25.0" /><br />
+							<label>Close Duration: </label><input type="number" id="closeDuration" min="5.0" max="25.0" /><br />
+							<label>Close Hold Duration: </label><input type="number" id="closeHoldDuration" min="5.0" max="25.0" /><br />
+							<label>Target Open: </label><input type="number" id="targetOpen" min="0" max="9000" /><br />
+							<label>Target Close: </label><input type="number" id="targetClose" min="-1000" max="1000" /><br />
+							<label>Motor 1 Offset: </label><input type="number" id="m1PositionOffset" value="0" min="-1000" max="1000" /><br />
+							<label>Motor 2 Offset: </label><input type="number" id="m2PositionOffset" value="0" min="-1000" max="1000" /><br />
 							<label>Sigmoid Function:</label>
 							<select id="sigmoidFunction" value=2>
 								<option value=0>Natural Log</option>
 								<option value=1>Arctan</option>
 								<option value=2>Sine Squared</option>
 							</select><br />
-							<label>Power Multiplier: </label><input id="powerScalar" type="number" value="5.0" min="1.0" max="10.0" size=8/><br />
-							<label>Power Easing: </label><input id="powerEasing" type="number" value="0.5" min="0.1" max="1.0" size=8 /><br />
-							<label>Target Window: </label><input id="targetWindow" type="number" value="5" min="-2500" max="2500" size=8 /><br />
-							<label>Power Limit: </label><input id="powerLimit" type="number" value="480" min="0" max="500" size=8 /><br />
-							<label>Power Cutoff Threshold: </label><input id="powerCutoff" type="number" value="25" min="00" max="250" size=8 /><br />
-							<label>Speed Cutoff Threshold: </label><input id="speedCutoff" type="number" value="0.01" min="0.0" max=".25" size=8 />
+							<label>Power Multiplier: </label><input id="powerScalar" type="number" value="2.0" min="0.5" max="5.0" size=8/><br />
+							<label>Power Easing: </label><input id="powerEasing" type="number" value="1.0" min="0.1" max="1.0" size=8 /><br />
+							<!-- <label>Target Window: </label><input id="targetWindow" type="number" value="5" min="-2500" max="2500" size=8 /><br /> -->
+							<label>Power Limit: </label><input id="powerLimit" type="number" value="400" min="0" max="480" size=8 /><br />
+							<!-- <label>Power Cutoff Threshold: </label><input id="powerCutoff" type="number" value="25" min="00" max="250" size=8 /><br /> -->
+							<!-- <label>Speed Cutoff Threshold: </label><input id="speedCutoff" type="number" value="0.01" min="0.0" max=".25" size=8 /> -->
 							<p>
 								<button id="apply" class="applyButton">Apply Settings</button><div id="apply-status"></div>		
 							</p>
