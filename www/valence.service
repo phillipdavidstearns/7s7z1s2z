@@ -7,7 +7,7 @@ Wants=pigpiod.service
 Type=simple
 ExecStart=/usr/bin/python3 /usr/local/bin/valence/server.py
 RestartSec=5
-Restart=always
+Restart=never
 TimeoutSec=10
 
 [Install]

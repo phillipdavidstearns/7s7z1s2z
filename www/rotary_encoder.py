@@ -3,6 +3,8 @@ import pigpio
 
 class Decoder:
 	def __init__(self, pi, gpioA, gpioB, callback):
+		if not pi.connected:
+			raise IOError("Can't connect to pigpio")
 		self.pi = pi
 		self.gpioA = gpioA
 		self.gpioB = gpioB
@@ -30,26 +32,14 @@ class Decoder:
 			
 		if gpio != self.lastGpio: # debounce
 			self.lastGpio = gpio
-			if gpio == self.gpioA and level == 1:
-				if self.levB == 1:
+			if gpio == self.gpioA and level == self.levB:
 					self.callback(1)
-				elif self.levB == 0:
+			elif gpio == self.gpioA and not level == self.levB:
 					self.callback(-1)
-			elif gpio == self.gpioA and level == 0:
-				if self.levB == 1:
+			elif gpio == self.gpioB and level == self.levA:
 					self.callback(-1)
-				elif self.levB == 0:
+			elif gpio == self.gpioB and not level == self.levA:
 					self.callback(1)
-			elif gpio == self.gpioB and level == 1:
-				if self.levA == 1:
-					self.callback(-1)
-				elif self.levA == 0:
-					self.callback(1)
-			elif gpio == self.gpioB and level == 0:
-				if self.levA == 1:
-					self.callback(1)
-				elif self.levA == 0:
-					self.callback(-1)
 
 	def cancel(self):
 		self.cbA.cancel()

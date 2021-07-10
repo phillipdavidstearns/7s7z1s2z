@@ -3,6 +3,7 @@
 import os
 import sys
 import json
+import signal
 from tornado.websocket import WebSocketHandler
 from tornado.web import Application, RequestHandler, StaticFileHandler
 from tornado.httpserver import HTTPServer
@@ -12,27 +13,23 @@ from motor_controller import MotorController
 
 # To do: Simple Login
 # https://www.tornadoweb.org/en/stable/guide/security.html
-	
-mc = MotorController()
-
-def constrain( _val, _min, _max):
-	return min(_max, max(_min,_val))
 
 class MainHandler(RequestHandler):
 	def prepare(self):
 		if self.request.protocol == "http":
+			print ("[+] HTTP user connected.")
 			self.redirect("https://%s" % self.request.full_url()[len("http://"):], permanent=True)
 	def get(self):
-		 print ("[HTTP](MainHandler) User Connected.")
+		 print ("[+] HTTP session upgraded to HTTPS.")
 		 self.render("index.html")
 
 class WSHandler(WebSocketHandler): 
 	def open(self):
-		print ('[WS] Connection was opened.')
+		print ('[+] WS connection was opened.')
 	def on_close(self):
-		print ('[WS] Connection was closed.')
+		print ('[+] WS connection was closed.')
 	def on_message(self, message):
-		mc.send(message)
+		mc.send(message,self)
 
 class DefaultHandler(RequestHandler):
 	def prepare(self):
@@ -63,16 +60,25 @@ if __name__ == "__main__":
 			}
 		)
 		http_server.listen(443)
-		mc.start()
 		main_loop = IOLoop.instance()
+		
+		mc = MotorController()
+		mc.start()
+		
+		def signalHandler(signum, frame):
+			print('[!] Caught termination signal: ', signum)
+			main_loop.stop()
+			mc.stop()
+			sys.exit()
+		
+		signal.signal(signal.SIGINT, signalHandler)
+		signal.signal(signal.SIGTERM, signalHandler)
+		signal.signal(signal.SIGHUP, signalHandler)
 		print ("[+] Valence Server started")
 		main_loop.start()
 	except Exception as e:
-		# Ooops message
 		print ("[!] Exception raised: ",type(e), e)
 	finally:
-		print()
 		print ("[+] Have a nice day! :)")
-		mc.stop()
 		sys.exit()
 #End of Program
