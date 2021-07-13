@@ -1,14 +1,17 @@
 [Unit]
 Description=Valence
+Documentation=https://github.com/phillipdavidstearns/membrane-python
 After=network.target
-Wants=pigpiod.service
+Requires=pigpiod.service
+Upholds=pigpiod.service
 
 [Service]
 Type=simple
 ExecStart=/usr/bin/python3 /usr/local/bin/valence/server.py
 RestartSec=5
-Restart=never
-TimeoutSec=10
+TimeoutStartSec=30
+TimeoutSec=60
+TimeoutStopSec=60
 
 [Install]
 WantedBy=multi-user.target

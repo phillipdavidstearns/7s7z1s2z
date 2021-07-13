@@ -1,4 +1,4 @@
-#! /usr/bin/python3
+#!/usr/bin/python3
 
 import os
 import sys
@@ -10,6 +10,7 @@ from tornado.httpserver import HTTPServer
 from tornado.ioloop import IOLoop
 from time import sleep, time
 from motor_controller import MotorController
+from threading import Thread
 
 # To do: Simple Login
 # https://www.tornadoweb.org/en/stable/guide/security.html
@@ -49,6 +50,14 @@ def make_app():
 	]
 	return Application(urls, **settings)
 
+def waitUntilClosed(MotorController):
+	mc.goto(3)
+	while not MotorController.machineState == 4:
+		sleep(0.1)
+		pass
+	print('[+] Stopping MotorController.')
+	MotorController.stop()
+
 if __name__ == "__main__":
 	try:
 		application = make_app()
@@ -67,10 +76,12 @@ if __name__ == "__main__":
 		
 		def signalHandler(signum, frame):
 			print('[!] Caught termination signal: ', signum)
+			print('[*] Waiting for Valence to Close.')
+			waitUntilClosed(mc)
+			print('[*] Shutting down server.')
 			main_loop.stop()
-			mc.stop()
 			sys.exit()
-		
+
 		signal.signal(signal.SIGINT, signalHandler)
 		signal.signal(signal.SIGTERM, signalHandler)
 		signal.signal(signal.SIGHUP, signalHandler)
@@ -80,5 +91,4 @@ if __name__ == "__main__":
 		print ("[!] Exception raised: ",type(e), e)
 	finally:
 		print ("[+] Have a nice day! :)")
-		sys.exit()
 #End of Program
