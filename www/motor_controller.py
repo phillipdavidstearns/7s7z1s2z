@@ -5,6 +5,7 @@ from rotary_encoder import Decoder
 from threading import Thread, Timer
 from math import log, exp, sin, tanh, pi
 from time import time, sleep
+from random import random
 import sys
 import os
 import json
@@ -34,12 +35,15 @@ class MotorController(Thread):
 		self.loopDelay = 0.01
 		self.timer=None
 		self.GPIO = dual_g2_hpmd_rpi._pi
+		self.GPIO.set_PWM_frequency(4,8000)
+		self.GPIO.set_PWM_dutycycle(PUMP_PWM_PIN, 0)
 		self.m1Position = 0
 		self.m2Position = 0
 		self.m1Flipped = False
 		self.m2Flipped = True
 		self.m1Decoder = Decoder(self.GPIO, M1_ENC1_PIN, M1_ENC2_PIN, self.m1Callback)
 		self.m2Decoder = Decoder(self.GPIO, M2_ENC1_PIN, M2_ENC2_PIN, self.m2Callback)
+		self.mPumpSpeed=0.0
 		self.powerEasing=0.75
 		self.m1Power = 0
 		self.m2Power = 0
@@ -93,6 +97,7 @@ class MotorController(Thread):
 		if not self.timer == None:
 			self.timer.cancel()
 		dual_g2_hpmd_rpi.motors.setSpeeds(0.0,0.0)
+		self.setPumpSpeed(0.0)
 
 
 	def pause(self):
@@ -198,6 +203,7 @@ class MotorController(Thread):
 		status['powerEasing']=self.powerEasing
 		status['m1Power']=self.m1Power
 		status['m2Power']=self.m2Power
+		status['mPumpSpeed']=self.mPumpSpeed
 		status['powerLimit']=self.powerLimit
 		status['powerScalar']=self.powerScalar
 		status['sigmoidFunction']=self.sigmoidFunction
@@ -230,6 +236,7 @@ class MotorController(Thread):
 		settings['targetClose']=self.targetClose
 		settings['m1Offset']=self.m1Offset
 		settings['m2Offset']=self.m2Offset
+		settings['mPumpSpeed']=self.mPumpSpeed
 		settings['startupDuration']=self.startupDuration
 		settings['openDuration']=self.openDuration
 		settings['openHoldDuration']=self.openHoldDuration
@@ -265,6 +272,9 @@ class MotorController(Thread):
 				self.m1Offset = float(value)
 			elif param == 'm2Offset':
 				self.m2Offset = float(value)
+			elif param == 'mPumpSpeed':
+				self.mPumpSpeed = float(value)
+				self.setPumpSpeed(self.mPumpSpeed)
 			elif param == 'sigmoidFunction':
 				self.sigmoidFunction = int(value)
 			elif param == 'powerScalar':
@@ -319,7 +329,7 @@ class MotorController(Thread):
 			return _value
 
 	def setPumpSpeed(self, value):
-		self._pi.hardware_PWM(PUMP_PWM_PIN, 20000, contraint(value,0.0,1.0)*1000000)
+		self.GPIO.set_PWM_dutycycle(PUMP_PWM_PIN, int(self.constrain(value,0.0,1.0)*255))
 		
 	def motionControl(self):
 		# retrigger motioncontrol loop
@@ -390,6 +400,7 @@ if __name__ == "__main__":
 		# print("settings: ", mc.getSettings())
 		mc.start()
 		while True:
+			mc.setPumpSpeed(random())
 			sleep(1)
 	except Exception as e:
 		print("Exception: ",e)
