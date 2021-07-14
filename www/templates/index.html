@@ -14,7 +14,10 @@
 
 	<body>
 		<div align="center">
-			<h1>Valence Control Panel</h1>
+			<h1>Valence Control Panel</h1><br />
+			<form action="/logout">
+				<button type="submit" id="logout">logout</button>
+			</form>
 			<hr />
 			<table>
 				<tr>
@@ -100,12 +103,12 @@
 								<button id="apply" class="applyButton">Apply Settings</button><span id="apply-status"></span>
 							</p>
 							<p>
-								<button id="saveSettings">Save Last Applied Settings</button><br />
+								<button id="saveSettings">Save Applied/Current Settings</button><br />
 								<button id="loadSettings">Load Last Saved Settings</button>
 							</p>
 							<p>
 								<button id="loadDefaults">Load Default Settings</button><br />
-								<button id="saveDefaults">Write Last Applied Settings to Default</button>
+								<button id="saveDefaults">Write Applied/Current Settings to Default</button>
 							</p>
 						</div>
 					</td>

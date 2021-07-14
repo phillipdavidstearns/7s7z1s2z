@@ -5,6 +5,8 @@ $(document).ready(function(){
 	var ws_interval = 1000; // request status interval in ms
 	var getSettings = null;
 
+	openWebsocket();
+	
 	function openWebsocket(){
 		if (window.location.protocol == "http:"){
 			ws = new WebSocket("ws://" + window.location.host + WEBSOCKET_ROUTE);
@@ -49,8 +51,6 @@ $(document).ready(function(){
 			setTimeout(function(){openWebsocket()}, 5000); // if we get disconnected, attempt to reconnect in 5s
 		};
 	};
-		
-	openWebsocket();
 
 	document.getElementById('open').onclick = function () {
 		ws.send(JSON.stringify({'goto':1}));
