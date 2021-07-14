@@ -22,11 +22,8 @@ class BaseHandler(RequestHandler):
 
 class LoginHandler(BaseHandler):
 	def get(self):
-		self.write('<html><body><form action="/login" method="post">'
-				   'username: <input type="text" name="username"><br>'
-				   'password: <input type="text" name="password"><br>'
-				   '<input type="submit" value="Log In">'
-				   '</form></body></html>')
+		self.render("login.html")
+
 	def post(self):
 		username = self.get_argument("username")
 		password = self.get_argument("password")

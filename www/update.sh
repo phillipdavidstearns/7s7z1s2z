@@ -3,7 +3,7 @@
 INSTALL_DIR="/usr/local/bin/valence"
 SERVICE="valence.service"
 
-echo "[*] Checking for previously installed files"
+echo "[*] Running service: $SERVICE"
 
 if sudo systemctl -a | grep $SERVICE >/dev/null 2>&1;then
 	echo "[*] Stopping $SERVICE"
@@ -27,7 +27,6 @@ sudo cp server.py $INSTALL_DIR
 sudo chmod +x server.py
 sudo cp motor_controller.py $INSTALL_DIR
 sudo cp rotary_encoder.py $INSTALL_DIR
-sudo cp default_settings.json $INSTALL_DIR
 sudo cp -r templates $INSTALL_DIR
 sudo cp -r static $INSTALL_DIR
 sudo cp $SERVICE /lib/systemd/system/$SERVICE

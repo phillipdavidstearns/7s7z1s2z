@@ -3,7 +3,7 @@ Description=Valence
 Documentation=https://github.com/phillipdavidstearns/membrane-python
 After=network.target
 Requires=pigpiod.service
-Upholds=pigpiod.service
+UpHolds=pigpiod.service
 
 [Service]
 Type=simple
