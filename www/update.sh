@@ -9,11 +9,6 @@ if sudo systemctl -a | grep $SERVICE >/dev/null 2>&1;then
 	echo "[*] Stopping $SERVICE"
 	sudo systemctl stop $SERVICE
 fi
-# 	echo "[*] Removing $SERVICE"
-# 	sudo rm /lib/systemd/system/$SERVICE
-# 	echo "[*] Removing $INSTALL_DIR" 
-# 	sudo rm -rf $INSTALL_DIR
-# fi
 
 if [ -d $INSTALL_DIR ];then
 	echo "[+] $INSTALL_DIR exists."

@@ -31,6 +31,7 @@ class MotorController(Thread):
 	def __init__(self, callback=None):
 		self.defaultsFile="default_settings.json"
 		self.defaultsPath=os.path.dirname(os.path.abspath(__file__))
+		self.websocket=None
 		self.settings = {}
 		self.loopDelay = 0.01
 		self.timer=None
@@ -147,7 +148,7 @@ class MotorController(Thread):
 #------------------------------------------------------------------------
 # helper functions
 	
-	def send(self, request, object=None):
+	def send(self, request):
 		parsed={}
 		response={}
 
@@ -183,9 +184,9 @@ class MotorController(Thread):
 		else:
 			raise Exception("Unrecognized request: ", request)
 
-		if object and response:
+		if self.websocket and response:
 			try:
-				object.write_message(json.dumps(response))
+				websocket.write_message(json.dumps(response))
 			except Exception as e:
 				print("WebSoket Write Exception: ",e)
 		else:
@@ -249,40 +250,40 @@ class MotorController(Thread):
 		for param in params:
 			value = params[param]
 			if param == 'loopDelay':
-				self.loopDelay = float(value)
+				self.loopDelay = self.constrain(value,0.005,0.025)
 			elif param == 'm1Flipped':
 				self.m1Flipped = value
 			elif param == 'm2Flipped':
 				self.m2Flipped = value
 			elif param == 'startupDuration':
-				self.startupDuration = float(value)
+				self.startupDuration = self.constrain(value,0,180)
 			elif param == 'openDuration':
-				self.openDuration = float(value)
+				self.openDuration = self.constrain(value,5,30)
 			elif param == 'openHoldDuration':
-				self.openHoldDuration = float(value)
+				self.openHoldDuration = self.constrain(value,5,30)
 			elif param == 'closeDuration':
-				self.closeDuration = float(value)
+				self.closeDuration = self.constrain(value,5,30)
 			elif param == 'closeHoldDuration':
-				self.closeHoldDuration = float(value)
+				self.closeHoldDuration = self.constrain(value,5,30)
 			elif param == 'targetOpen':
-				self.targetOpen = float(value)
+				self.targetOpen = int(self.constrain(value,0,10000))
 			elif param == 'targetClose':
-				self.targetClose = float(value)
+				self.targetClose = int(self.constrain(value,-1000,1000))
 			elif param == 'm1Offset':
-				self.m1Offset = float(value)
+				self.m1Offset = int(self.constrain(value,-500,500))
 			elif param == 'm2Offset':
-				self.m2Offset = float(value)
+				self.m2Offset = int(self.constrain(value,-500,500))
 			elif param == 'mPumpSpeed':
-				self.mPumpSpeed = float(value)
+				self.mPumpSpeed = self.constrain(value,0.0,1.0)
 				self.setPumpSpeed(self.mPumpSpeed)
 			elif param == 'sigmoidFunction':
-				self.sigmoidFunction = int(value)
+				self.sigmoidFunction = value
 			elif param == 'powerScalar':
-				self.powerScalar = float(value)
+				self.powerScalar = self.constrain(value,0.5,5.0)
 			elif param == 'powerEasing':
-				self.powerEasing = float(value)
+				self.powerEasing = self.constrain(value,0.125,1.0)
 			elif param == 'powerLimit':
-				self.powerLimit = float(value)
+				self.powerLimit = int(self.constrain(value,0,480))
 			else:
 				errors['errors']={param,value}
 

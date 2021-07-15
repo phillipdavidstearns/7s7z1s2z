@@ -54,10 +54,12 @@ class MainHandler(BaseHandler):
 class WSHandler(WebSocketHandler):
 	def open(self):
 		print ('[+] WS connection was opened.')
+		mc.websocket=self
 	def on_close(self):
 		print ('[+] WS connection was closed.')
+		mc.websocket=self
 	def on_message(self, message):
-		mc.send(message,self)
+		mc.send(message)
 
 class DefaultHandler(RequestHandler):
 	def prepare(self):
