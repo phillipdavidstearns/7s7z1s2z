@@ -55,7 +55,7 @@ Before starting, make sure that all connection to VAC 120 mains power are discon
 * Connect the `Red (+)` and `Clear (-)` wires from the `Driver Shield` to the `VM` and `GROUND (Symbol)` terminal block.
 * Connect the `Gear Motors`, M1 and M2, the their corresponding terminal blocks using the following pinout:
 
-**NOTE: Be sure to properly strip, tin, and trim wires so that they can be cleanly inserted and secured into the terminal blocks**
+**NOTE: Be sure to strip, tin, and trim wires (if necessary) so that they can be cleanly inserted and secured into the terminal blocks**
 
 ```
 Motor Wire Color Code:
@@ -101,7 +101,7 @@ Green			Ground		GND (symbol)
 
 ![](images/PowerSupply.jpg)
 
-1. Double check connections are correct!
+1. **Double check that all connections are correct!**
 2. Connect the power supply to mains power when ready to proceed to testing and configuration.
 
 ## Software Overview
