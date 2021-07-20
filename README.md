@@ -55,17 +55,28 @@ Before starting, make sure that all connection to VAC 120 mains power are discon
 * Connect the `Red (+)` and `Clear (-)` wires from the `Driver Shield` to the `VM` and `GROUND (Symbol)` terminal block.
 * Connect the `Gear Motors`, M1 and M2, the their corresponding terminal blocks using the following pinout:
 
+**NOTE: Be sure to properly strip, tin, and trim wires so that they can be cleanly inserted and secured into the terminal blocks**
+
 ```
 Motor Wire Color Code:
+
 ==============================================
-Color			Function		Terminal Block
+POWER (Black 2-conductor)
 ----------------------------------------------
-Red				Motor +V		Motor Driver 1/2+
-Black			Motor GND		Motor Driver 1/2-
-Green			Encoder GND		PCB G
-Blue			Encoder +5V		PCB B
-Yellow			Encoder 1		PCB Y
-Orange/White	Encoder 2		PCB W
+Wire Color		Function		Terminal Block
+----------------------------------------------
+Black (ribbed)	Motor +V		Motor Driver 1/2+
+Black (smooth)	Motor GND		Motor Driver 1/2-
+
+==============================================
+ENCODER (Grey 4-conductor)
+----------------------------------------------
+Wire Color		Function		Terminal Block
+----------------------------------------------
+Black			Encoder GND		PCB G
+Red				Encoder +5V		PCB B
+Green			Encoder 1		PCB Y
+White			Encoder 2		PCB W
 ```
 
 * Connect the `Pump Motor` to `M+` and `M-` terminal blocks for the Pump motor.
