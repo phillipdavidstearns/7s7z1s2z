@@ -75,7 +75,7 @@ Wire Color		Function		Terminal Block
 ----------------------------------------------
 Black			Encoder GND		PCB G
 Red				Encoder +5V		PCB B
-Green			Encoder 1		PCB Y
+Yellow			Encoder 1		PCB Y
 White			Encoder 2		PCB W
 ```
 
