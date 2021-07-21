@@ -57,6 +57,15 @@ Before starting, make sure that all connection to VAC 120 mains power are discon
 
 **NOTE: Be sure to strip, tin, and trim wires (if necessary) so that they can be cleanly inserted and secured into the terminal blocks**
 
+1. Strip insulation off the ends
+1. Twist the conductors to make a tight bundle
+1. Tin conductors with solder
+1. Trim conductors to ~2mm
+1. Open terminal block with screw driver by screwing CCW
+1. Insert tinned and trimmed wire ends into the terminal block. (Leave no conductor material exposed)
+1. Close the block with screw driver by screwing CW until tight
+1. Give a gentle tug to ensure the connection is secure
+
 ```
 Motor Wire Color Code:
 
