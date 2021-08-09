@@ -1,12 +1,41 @@
+<span id="top"></span>
 # Valence Guide
 
+* [Startup and Shutdown](#startup-and-shutdown)
 * [Hardware Overview](#hardware-overview)
 * [Hardware Setup](#hardware-setup)
 * [Software Overview](#software-overview)
 * [Using the Web Application](#using-the-web-application)
-* [Reources](#additional-resources)
+* [Resources](#additional-resources)
 
-## Hardware Overview
+<span id="startup-and-shutdown"></span>
+## Startup and Shutdown Procedure [(top)](#top)
+
+### Startup
+
+1. Complete the [Hardware Setup](#hardware-setup) portion of this guide.
+1. Plug the installation to power it on.
+1. Wait for it to boot.
+1. Connect to the same network the installation is connected to.
+1. In a web browser (will not work on mobile), navigate to: `https://valence.local`
+1. Log in using supplied credentials.
+1. Click `ON` in the "Pump:" section.
+1. Load the installation with liquid soap.
+1. Click `RESUME` or `OPEN` in the "Go To:" section.
+1. Click `logout`
+ 
+### Shutdown
+
+1. Connect to the same network the installation is connected to.
+1. In a web browser (will not work on mobile), navigate to: `https://valence.local`
+1. Log in using supplied credentials.
+1. Click `CLOSE & HOLD` in the "Go To:" section
+1. Drain the liquid soap from the installation.
+1. Click `OFF` in the "Pump:" section
+1. Click `logout` 
+
+<span id="hardware-overview"></span>
+## Hardware Overview [(top)](#top)
 
 ![](images/HardwareOverview.jpg)
 
@@ -26,8 +55,8 @@
 * 7' cable for each 
 * Grey if possible
 
- 
-## Hardware Setup
+<span id="hardware-setup"></span>
+## Hardware Setup [(top)](#top)
 
 ![](images/Tools.jpg)
 
@@ -119,7 +148,8 @@ Green			Ground		GND (symbol)
 1. **Double check that all connections are correct!**
 2. Connect the power supply to mains power when ready to proceed to testing and configuration.
 
-## Software Overview
+<span id="software-overview"></span>
+## Software Overview [(top)](#top)
 
 ### Components
 
@@ -166,7 +196,6 @@ Provides all the resources necessary to control the main gear head motors and th
 
 * dependencies: Custom modified `Decoder` class from `rotary_encoder.py`, and `dual_g2_hpmd_rpi` module provided by Pololu.
 * Runs in a thread separate from the main `server.py` thread.
-* 
 
 ### Tornado Web Application
 
@@ -192,38 +221,56 @@ Provides all the resources necessary to control the main gear head motors and th
 
 * `install.sh` - use for fresh install
 * `uninstall.sh` - removes all install components
-* `update.sh` - use for applying changes to code base
 
-## Using the Web Application
+<span id="using-the-web-application"></span>
+## Using the Web Application [(top)](#top)
 
-### Navigate to `valence.local`
+* [Login](#login)
+* [Control Panel](#control-panel)
+	* [Current Status](#current-status)
+	* [Change Settings](#change-settings)
+	* [Saving and Loading Settings](#saving-and-loading-settings)
+
+<span id="login"></span>
+### Login
+
+* Navigate to `valence.local`
+* You will likely see a warning from your browser that the certificate is invalid. Make an exception to access the page using the options provided by your browser.
 
 ![](images/Login.png)
 
-* You will likely see a warning from your browser that the certificate is invalid. Make an exception to access the page using the options provided by your browser.
 * Login is required. Sessions expire after 1 day.
 * Failed login returns to the login page, no status is displayed.
 * Successful login loads the `Control Panel`.
 
-### The Control Panel
+<span id="control-panel"></span>
+### Control Panel
 
 ![](images/ControlPanel.png)
 
+* `Current Status` section relies on websockets to poll and update the values seen here. They are a reflection of the current parameters governing the behaviors of the installation.
+* `Change Settings` section relies on websockets to push values entered here to the installation.
+* `logout` ends the session and requires the user to log back in again. Sessions are valid only for 24 hours. Logging out at the end of each session is highly recommended to ensure security for the safety of the sculpture and visitors.
+*  `Websocket status:` indicates whether the sculpture is connected to the `Valence Control Panel` web page. `Current Status` and `Change Settings` require the status to be `Connected`
+
+
+<span id="current-status"></span>
 #### Current Status
 
 Displays the current status of the sculpture and the settings currently running.
 
 * `Machine State` and `Last Machine State`:
-	* `STARTUP` - A period where the Pump motor runs, while the sculpture holds closed.
+	* `STARTUP` - Indicates whether the control program has just been started.
 	* `OPENING` - Sculpture is in the process of opening.
 	* `HOLDING OPEN` - Sculpture is open and holding open.
 	* `CLOSING` - Sculpture is in the process of closing.
 	* `HOLDING CLOSE` - Sculpture is closed and holding closed.
 	* `PAUSED` - Sculpture movement has been suspended by the user.
-	* `null` - State
+	* `N/A` - Unrecognized state that needs to be address by the technical lead.
 	* Notes: Machine State is the CURRENT state and Last State was the state the sculpture was in when the user pressed PAUSE. States progress in order with OPENING following the completion of HOLDING CLOSED.
 * `Motor Power`: Value applied to the Driver Shield, min/max range -480/480. (float)
 * `Motor Position`: Encoder event count. 8400/rev (int)
+* `Motor Speed`: Encoder Events / Loop Delay
 * `Motor Flipped`: Whether the motor direction is reversed (boolean)
 * `Motor Offset`: Offset Motor Position by N counts (int)
 * `Pump Speed`: Current speed setting for the pump motor (float)
@@ -243,29 +290,28 @@ Displays the current status of the sculpture and the settings currently running.
 *  `Sigmoid Function`: The currently selected motion smoothing function.
 *  `Loop Delay`: Interval between triggering of the main `MotorController` `motionControl` method. (float)
 
-#### Changing Settings
+<span id="change-settings"></span>
+#### Change Settings
 
 * `Go To:` - Clicking buttons immediately change the state of the sculpture. Totally safe to do whenever. 
-	* `OPEN`: opens the sculpture. keeps running without pause.
+	* `OPEN`: opens the sculpture. keeps running without pause. (can be used to start the installation)
 	* `CLOSE`: closes the sculpture keeps running without pause.
-	* `PAUSE`: halts movement
-	* `RESUME`: resumes movement
+	* `CLOSE & HOLD`: closes the sculpture keeps running and then pauses.
+	* `PAUSE`: halts progress in any state
+	* `RESUME`: resumes progress of the paused state (can be used to start the installation)
 
---
+***
 
 **Warning: Before applying changes to settings below, you MUST:**
 
-If the `Machine State` is in the STARTUP state:
+Either:
 
-1. click `PAUSE`
+* Check whether the machine has just been booted: `Machine State == PAUSED` AND `Last Machine State == STARTUP` 
+* Click `CLOSE & HOLD` and wait until `Machine State == PAUSED` AND `Last Machine State == HOLDING CLOSED` 
 
-If the sculpture is in any other state:
+**Failure to do so may result in damage to the sculpture and/or injury to visitors**
 
-1. click `CLOSE`
-2. wait for the sculpture to reach `HOLDING CLOSED`
-3. click `PAUSE`
-
---
+***
 
 **Note: It is possible to edit the parameters below without applying.**
 
@@ -283,20 +329,22 @@ To apply changes to the above settings, first make sure the machineState is eith
 
 * Click `Apply Settings`
 
-## Saving and Loading Settings
+<span id="saving-and-loading-settings"></span>
+#### Saving and Loading Settings
 
 * `Apply Settings`:
-	* Pushes values in `Change Settings` fields to the `MotorController`
+	* Pushes values in `Change Settings` fields to the `MotorController`, which should translate over to the `Current Status`
 * `Save Applied/Current Settings`:
-	* Stores the current settings running on the `MotorController` to be recalled later in the same session.
+	* Temporarily saves the current settings running on the `MotorController` to be recalled later in the same session.
 * `Load Last Saved Settings`:
-	* Loads the previously saved settings from the current session into the `Change Settings` fields. Click `Apply Settings` to push to the `MotorController`.
+	* Loads the previously saved settings from the current session into the `Change Settings` fields. Click `Apply Settings` to push to the `MotorController`. Think of the above two steps as a multi-step undo.
 * `Load Default Settings`:
 	* Loads the `Default Settings` from disk into the `Change Settings` fields. Click `Apply Settings` to push to the `MotorController`.
 * `Write Applied/Current Settings to Default`:
 	* Writes the current applied settings running on the `Motor Controller` to disk. The sculpture will use these settings when it is restarted.
 
-## Additional Resources
+<span id="additional-resources"></span>
+## Additional Resources [(top)](#top)
 
 ### Pololu Dual G2 High-Power Motor Driver 18v22
 
