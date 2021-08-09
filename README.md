@@ -21,6 +21,12 @@
 * Black Acrylic Base
 * Various standoffs and screws
 
+**Note:** Motor enclosure dimensions 4.5" diameter, 5.25" length, hole 1.5"x9/32" 1.5" from the back.
+
+* 7' cable for each 
+* Grey if possible
+
+ 
 ## Hardware Setup
 
 ![](images/Tools.jpg)

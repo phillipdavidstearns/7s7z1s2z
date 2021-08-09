@@ -28,7 +28,7 @@ class LoginHandler(BaseHandler):
 		username = self.get_argument("username")
 		password = self.get_argument("password")
 		submitted_credentials = username+":"+password
-		hashed_credentials = sha256(submitted_credentials.encode()).hexdigest()
+		hashed_credentials = sha256(submitted_credentials.encode('utf-8')).hexdigest()
 		if hashed_credentials == credentials:
 			print("[+] Successful Authentication")
 			self.set_secure_cookie("valence_user", self.get_argument("username"),expires_days=1)
@@ -54,12 +54,10 @@ class MainHandler(BaseHandler):
 class WSHandler(WebSocketHandler):
 	def open(self):
 		print ('[+] WS connection was opened.')
-		mc.websocket=self
 	def on_close(self):
 		print ('[+] WS connection was closed.')
-		mc.websocket=self
-	def on_message(self, message):
-		mc.send(message)
+	async def on_message(self, message):
+		await mc.websocket(self, message)
 
 class DefaultHandler(RequestHandler):
 	def prepare(self):
@@ -86,13 +84,30 @@ def make_app():
 def waitUntilClosed(MotorController):
 	mc.goto(3)
 	while not MotorController.machineState == 4:
-		sleep(0.1)
-		pass
+		sleep(1)
 	print('[+] Stopping MotorController.')
 	MotorController.stop()
 
 if __name__ == "__main__":
+
+	def signalHandler(signum, frame):
+		print('[!] Caught termination signal: ', signum)
+		print('[*] Shutting down HTTPServer.')
+		http_server.stop()
+		print('[*] Waiting for MotorController to reach CLOSED state.')
+		waitUntilClosed(mc)
+		print('[*] Stopping IOLoop.')
+		main_loop.stop()
+		sys.exit()
+
 	try:
+		signal.signal(signal.SIGINT, signalHandler)
+		signal.signal(signal.SIGTERM, signalHandler)
+		signal.signal(signal.SIGHUP, signalHandler)
+
+		mc = MotorController()
+		mc.start()
+
 		application = make_app()
 		application.listen(80)
 		http_server = HTTPServer(application,
@@ -103,21 +118,7 @@ if __name__ == "__main__":
 		)
 		http_server.listen(443)
 		main_loop = IOLoop.current()
-		
-		mc = MotorController()
-		mc.start()
-		
-		def signalHandler(signum, frame):
-			print('[!] Caught termination signal: ', signum)
-			print('[*] Waiting for Valence to Close.')
-			waitUntilClosed(mc)
-			print('[*] Shutting down server.')
-			main_loop.stop()
-			sys.exit()
 
-		signal.signal(signal.SIGINT, signalHandler)
-		signal.signal(signal.SIGTERM, signalHandler)
-		signal.signal(signal.SIGHUP, signalHandler)
 		print ("[+] Valence Server started")
 		main_loop.start()
 	except Exception as e:

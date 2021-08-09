@@ -28,33 +28,37 @@
 				<tr>
 					<td>
 						<div class="columnLeft">
-								<label>Machine State: </label><span id="machineState-status">updating</span><br />
-								<label>Last Machine State: </label><span id="lastMachineState-status">updating</span><br />
-								<label>Motor 1 Power: </label><span id="m1Power-status">updating</span><br />
-								<label>Motor 2 Power: </label><span id="m2Power-status">updating</span><br />
-								<label>Motor 1 Position: </label><span id="m1Position-status">updating</span><br />
-								<label>Motor 2 Position: </label><span id="m2Position-status">updating</span><br />
-								<label>Motor 1 Flipped: </label><span id="m1Flipped-status">updating</span><br />
-								<label>Motor 2 Flipped: </label><span id="m2Flipped-status">updating</span><br />
-								<label>Motor 1 Offset: </label><span id="m1Offset-status">updating</span><br />
-								<label>Motor 2 Offset: </label><span id="m2Offset-status">updating</span><br />
-								<label>Pump Speed: </label><span id="mPumpSpeed-status">updating</span><br />
-								<!--label>Motor 1 Speed: </label><span id="m1Speed-status">updating</span><br /-->
-								<!--label>Motor 2 Speed: </label><span id="m2Speed-status">updating</span><br /-->
-								<label>Current Time: </label><span id="tCurrent-status">updating</span><br />
-								<label>State End Time: </label><span id="tFinal-status">updating</span><br />
-								<label>Startup Duration: </label><span id="startupDuration-status">updating</span><br />
-								<label>Open Duration: </label><span id="openDuration-status">updating</span><br />
-								<label>Open Hold Duration: </label><span id="openHoldDuration-status">updating</span><br />
-								<label>Close Duration: </label><span id="closeDuration-status">updating</span><br />
-								<label>Close Hold Duration: </label><span id="closeHoldDuration-status">updating</span><br />
-								<label>Target Open: </label><span id="targetOpen-status">updating</span><br />
-								<label>Target Close: </label><span id="targetClose-status">updating</span><br />
-								<label>Target: </label><span id="target-status">updating</span><br />
-								<label>Progress: </label><span id="progress-status">updating</span><br />
-								<label>Last Progress: </label><span id="lastProgress-status">updating</span><br />
-								<label>Sigmoid Function: </label><span id="sigmoidFunction-status">updating</span><br />
-								<label>Loop Delay: </label><span id="loopDelay-status">updating</span><br />
+								<label>Machine State: </label><span id="machineState-status">...</span><br />
+								<label>Last Machine State: </label><span id="lastMachineState-status">...</span><br />
+								<hr>
+								<label>Motor 1 Power: </label><span id="m1Power-status">...</span><br />
+								<label>Motor 2 Power: </label><span id="m2Power-status">...</span><br />
+								<label>Motor 1 Position: </label><span id="m1Position-status">...</span><br />
+								<label>Motor 2 Position: </label><span id="m2Position-status">...</span><br />
+								<label>Motor 1 Speed: </label><span id="m1Speed-status">...</span><br />
+								<label>Motor 2 Speed: </label><span id="m2Speed-status">...</span><br />
+								<label>Motor 1 Flipped: </label><span id="m1Flipped-status">...</span><br />
+								<label>Motor 2 Flipped: </label><span id="m2Flipped-status">...</span><br />
+								<label>Motor 1 Offset: </label><span id="m1Offset-status">...</span><br />
+								<label>Motor 2 Offset: </label><span id="m2Offset-status">...</span><br />
+								<hr>
+								<label>Pump Speed: </label><span id="mPumpSpeed-status">...</span><br />
+								<hr>
+								<label>Current Time: </label><span id="tCurrent-status">...</span><br />
+								<label>State End Time: </label><span id="tFinal-status">...</span><br />
+								<!-- <label>Startup Duration: </label><span id="startupDuration-status">...</span><br /> -->
+								<label>Open Duration: </label><span id="openDuration-status">...</span><br />
+								<label>Open Hold Duration: </label><span id="openHoldDuration-status">...</span><br />
+								<label>Close Duration: </label><span id="closeDuration-status">...</span><br />
+								<label>Close Hold Duration: </label><span id="closeHoldDuration-status">...</span><br />
+								<label>Target Open: </label><span id="targetOpen-status">...</span><br />
+								<label>Target Close: </label><span id="targetClose-status">...</span><br />
+								<label>Target: </label><span id="target-status">...</span><br />
+								<label>Progress: </label><span id="progress-status">...</span><br />
+								<!-- <label>Last Progress: </label><span id="lastProgress-status">...</span><br /> -->
+								<hr>
+								<label>Sigmoid Function: </label><span id="sigmoidFunction-status">...</span><br />
+								<label>Loop Delay: </label><span id="loopDelay-status">...</span><br />
 						</div>
 					</td>
 					<td>
@@ -62,22 +66,29 @@
 							<label>Go To:</label><br/>
 							<button id="open">OPEN</button>
 							<button id="close">CLOSE</button>
+							<button id="closeAndPause">CLOSE & HOLD</button>
 							<button id="pause">PAUSE</button>
 							<button id="resume">RESUME</button>
+							<hr>
+							<label>Pump:</label><br/>
+							<button id="mPumpOn">ON</button>
+							<button id="mPumpOff">OFF</button>
+							<span id="mPumpIsOn-status"></span><br />
+							<label >Pump Speed:</label><input type="number" id="mPumpSpeed" min="0.0" max="1.0">
 							<hr>
 							<label >Motor 1 Flipped:</label><input type="checkbox" id="m1Flipped"><br />
 							<label >Motor 2 Flipped:</label><input type="checkbox" id="m2Flipped"><br />
 							<label>Motor 1 Offset: </label><input type="number" id="m1Offset" min="-250" max="250" /><br />
-							<label>Motor 2 Offset: </label><input type="number" id="m2Offset"  min="-250" max="250" /><br />
-							
-							<label >Pump Speed:</label><input type="number" id="mPumpSpeed" min="0.0" max="1.0"><br />
-							<label>Startup Duration: </label><input type="number" id="startupDuration" min="5.0" max="60.0" /><br />
+							<label>Motor 2 Offset: </label><input type="number" id="m2Offset"  min="-250" max="250" />
+							<hr>
+							<!-- <label>Startup Duration: </label><input type="number" id="startupDuration" min="5.0" max="60.0" /><br /> -->
 							<label>Open Duration: </label><input type="number" id="openDuration" min="5.0" max="30.0" /><br />
 							<label>Open Hold Duration: </label><input type="number" id="openHoldDuration" min="5.0" max="30.0" /><br />
 							<label>Close Duration: </label><input type="number" id="closeDuration" min="5.0" max="30.0" /><br />
 							<label>Close Hold Duration: </label><input type="number" id="closeHoldDuration" min="5.0" max="30.0" /><br />
 							<label>Target Open: </label><input type="number" id="targetOpen" min="0" max="8400" /><br />
-							<label>Target Close: </label><input type="number" id="targetClose" min="-500" max="1000" /><br />
+							<label>Target Close: </label><input type="number" id="targetClose" min="-500" max="1000" />
+							<hr>
 							<label>Sigmoid Function:</label>
 							<select id="sigmoidFunction" value=2>
 								<option value=0>Natural Log</option>
@@ -87,15 +98,15 @@
 							<label>Power Multiplier: </label><input id="powerScalar" type="number" min="0.5" max="5.0" size=8/><br />
 							<label>Power Easing: </label><input id="powerEasing" type="number" min="0.1" max="1.0" size=8 /><br />
 							<label>Power Limit: </label><input id="powerLimit" type="number" min="0" max="480" size=8 /><br />
-							<label>Loop Delay: </label><input type="number" id="loopDelay" min="0.005" max=".025" />
+							<!-- <label>Loop Delay: </label><input type="number" id="loopDelay" min="0.005" max=".025" /> -->
 							<hr>
 							<div>
 								<p><span class="warning">WARNING:</span></p>
 								<p>
-									Before making changes to settings using the buttons below, you MUST click the <code>CLOSE</code> button above, and then when the "Machine State" reaches <code>HOLDING CLOSED</code>, press <code>PAUSE</code>.
+									Before making changes to settings using the buttons below, you MUST click the <code>CLOSE & HOLD</code> button and wait until the "Machine State" = <code>PAUSED</code> and "Last Machine State" = <code>HOLDING CLOSED</code>.
 								</p>
 								<p>
-									Unless the "Machine State" is <code>PAUSED</code> and the "Last Machine State" is <code>HOLDING CLOSED</code> or <code>STARTUP</code>, damage to the sculpture can occur when applying settings.
+									Failure to do so may result in damage to the sculpture and pose an injury risk to visitors!
 								</p>
 							</div>
 							<hr>

@@ -60,12 +60,24 @@ $(document).ready(function(){
 		ws.send(JSON.stringify({'goto':3}));
 	};
 
+	document.getElementById('closeAndPause').onclick = function () {
+		ws.send(JSON.stringify({'goto':4}));
+	};
+
 	document.getElementById('pause').onclick = function () {
 		ws.send(JSON.stringify({'set':'pause'}));
 	};
 
 	document.getElementById('resume').onclick = function () {
 		ws.send(JSON.stringify({'set':'resume'}));
+	};
+
+	document.getElementById('mPumpOn').onclick = function () {
+		ws.send(JSON.stringify({'set':{'mPumpIsOn':true}}));
+	};
+
+	document.getElementById('mPumpOff').onclick = function () {
+		ws.send(JSON.stringify({'set':{'mPumpIsOn':false}}));
 	};
 
 	document.getElementById('loadSettings').onclick = function () {
@@ -83,18 +95,6 @@ $(document).ready(function(){
 	document.getElementById('saveDefaults').onclick = function () {
 		ws.send(JSON.stringify({'set':'saveDefaults'}));
 	};
-
-	// document.getElementById("m1Flipped").onchange = function (){
-	// 	var request = { 'set':{}};
-	// 	request.set['m1Flipped'] = document.getElementById("m1Flipped").checked;
-	// 	ws.send(JSON.stringify(request));
-	// }
-
-	// document.getElementById("m2Flipped").onchange = function (){
-	// 	var request = { 'set':{}};
-	// 	request.set['m2Flipped'] = document.getElementById("m2Flipped").checked;
-	// 	ws.send(JSON.stringify(request));
-	// }
 	
 	document.getElementById('apply').onclick = function () {
 		if (ws != null){
@@ -129,11 +129,10 @@ $(document).ready(function(){
 				};
 			} catch (error) {
 				// console.log(id);
-				console.error(error);
+				// console.error(error);
 			};
 		};
 	};
-
 	function displayStatus(status){
 		for(key in status){
 			id = key.concat('-status');
@@ -161,7 +160,7 @@ $(document).ready(function(){
 							state = "HOLDING CLOSED";
 							break;
 						default:
-							state=value;
+							state = "N/A";
 							break;
 					};
 					document.getElementById(id).innerHTML=state;	
@@ -178,6 +177,13 @@ $(document).ready(function(){
 						case "2":
 							state = "Sine Squared";
 						break;
+					};
+					document.getElementById(id).innerHTML=state;	
+				} else if( id == "mPumpIsOn-status" ){
+					if ( status[key] ){
+						state = "ON";
+					} else {
+						state = "OFF";
 					};
 					document.getElementById(id).innerHTML=state;	
 				} else {
