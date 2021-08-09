@@ -8,9 +8,8 @@ from tornado.websocket import WebSocketHandler
 from tornado.web import authenticated, Application, RequestHandler, StaticFileHandler
 from tornado.httpserver import HTTPServer
 from tornado.ioloop import IOLoop
-from time import sleep, time
+from time import sleep
 from motor_controller import MotorController
-from threading import Thread
 from hashlib import sha256
 
 cookie_secret=open("/usr/local/etc/valence/cookie_secret",'r').read().strip()
@@ -23,7 +22,6 @@ class BaseHandler(RequestHandler):
 class LoginHandler(BaseHandler):
 	def get(self):
 		self.render("login.html")
-
 	def post(self):
 		username = self.get_argument("username")
 		password = self.get_argument("password")
@@ -56,7 +54,7 @@ class WSHandler(WebSocketHandler):
 		print ('[+] WS connection was opened.')
 	def on_close(self):
 		print ('[+] WS connection was closed.')
-	async def on_message(self, message):
+	async def on_message(self, message): # send WebSocket object and message to MotorController
 		await mc.websocket(self, message)
 
 class DefaultHandler(RequestHandler):
@@ -72,7 +70,7 @@ def make_app():
 		login_url = "/login",
 		debug = False
 	)
-	urls = [
+	urls = [ # routing
 		(r'/', MainHandler),
 		(r'/ws', WSHandler),
 		(r'/login', LoginHandler),
@@ -82,14 +80,15 @@ def make_app():
 	return Application(urls, **settings)
 
 def waitUntilClosed(MotorController):
-	mc.goto(3)
-	while not MotorController.machineState == 4:
-		sleep(1)
+	mc.goto(3) # Go to CLOSE
+	while not MotorController.machineState == 4: # Wait for MotorController to reach CLOSE_HOLD
+		sleep(0.1)
 	print('[+] Stopping MotorController.')
 	MotorController.stop()
 
 if __name__ == "__main__":
 
+	# signal callback for handling HUP, INT and TERM signals
 	def signalHandler(signum, frame):
 		print('[!] Caught termination signal: ', signum)
 		print('[*] Shutting down HTTPServer.')
@@ -100,14 +99,15 @@ if __name__ == "__main__":
 		main_loop.stop()
 		sys.exit()
 
-	try:
-		signal.signal(signal.SIGINT, signalHandler)
-		signal.signal(signal.SIGTERM, signalHandler)
-		signal.signal(signal.SIGHUP, signalHandler)
+	signal.signal(signal.SIGINT, signalHandler)
+	signal.signal(signal.SIGTERM, signalHandler)
+	signal.signal(signal.SIGHUP, signalHandler)
 
+	try:
+		# Instantiate the MotorController and start it 
 		mc = MotorController()
 		mc.start()
-
+		# Build the web application and HTTP server
 		application = make_app()
 		application.listen(80)
 		http_server = HTTPServer(application,
@@ -118,7 +118,6 @@ if __name__ == "__main__":
 		)
 		http_server.listen(443)
 		main_loop = IOLoop.current()
-
 		print ("[+] Valence Server started")
 		main_loop.start()
 	except Exception as e:
