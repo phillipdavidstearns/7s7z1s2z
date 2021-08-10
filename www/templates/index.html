@@ -65,8 +65,9 @@
 						<div class="columnRight">
 							<label>Go To:</label><br/>
 							<button id="open">OPEN</button>
-							<button id="close">CLOSE</button>
-							<button id="closeAndPause">CLOSE & HOLD</button>
+							<button id="close">CLOSE</button><br />
+							<button id="openAndPause">OPEN & HOLD</button>
+							<button id="closeAndPause">CLOSE & HOLD</button><br />
 							<button id="pause">PAUSE</button>
 							<button id="resume">RESUME</button>
 							<hr>
@@ -97,13 +98,13 @@
 							</select><br />
 							<label>Power Multiplier: </label><input id="powerScalar" type="number" min="0.5" max="5.0" size=8/><br />
 							<label>Power Easing: </label><input id="powerEasing" type="number" min="0.1" max="1.0" size=8 /><br />
-							<label>Power Limit: </label><input id="powerLimit" type="number" min="0" max="480" size=8 /><br />
+							<!-- <label>Power Limit: </label><input id="powerLimit" type="number" min="0" max="480" size=8 /><br /> -->
 							<!-- <label>Loop Delay: </label><input type="number" id="loopDelay" min="0.005" max=".025" /> -->
 							<hr>
 							<div>
 								<p><span class="warning">WARNING:</span></p>
 								<p>
-									Before making changes to settings using the buttons below, you MUST click the <code>CLOSE & HOLD</code> button and wait until the "Machine State" = <code>PAUSED</code> and "Last Machine State" = <code>HOLDING CLOSED</code>.
+									Before making changes to settings using the buttons below, you MUST click either the <code>OPEN & HOLD</code> or <code>CLOSE & HOLD</code> button and wait until "Machine State" = <code>PAUSED</code>.
 								</p>
 								<p>
 									Failure to do so may result in damage to the sculpture and pose an injury risk to visitors!
@@ -126,7 +127,6 @@
 				</tr>
 
 			</table>
-
 			<hr />
 			Websocket status:
 			<br />

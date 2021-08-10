@@ -15,14 +15,14 @@ $(document).ready(function(){
 		};
 		ws.onopen = function(evt) {
 			$("#ws-status").html("Connected");
-			getSettings = setInterval(getValenceSettings, ws_interval); // get status of the MotorController on an interval
+			getStatus = setInterval(getValenceStatus, ws_interval); // get status of the MotorController on an interval
 			ws.send(JSON.stringify({'get':'loadDefaults'}));
 		};
 		ws.onmessage = function(evt) {
 			var message = null;
-			try{
+			try {
 				message = JSON.parse(evt.data); // expecting JSON formatted messages from the MotorController
-			} catch{
+			} catch {
 				console.error(error);
 			};
 			if (message != null){
@@ -46,7 +46,7 @@ $(document).ready(function(){
 		};
 		ws.onclose = function(evt) {
 			$("#ws-status").html("Disconnected");
-			clearInterval(getSettings); // stop trying to get the MotorController status
+			clearInterval(getStatus); // stop trying to get the MotorController status
 			ws = null;
 			setTimeout(function(){openWebsocket()}, 5000); // if we get disconnected, attempt to reconnect in 5s
 		};
@@ -54,6 +54,10 @@ $(document).ready(function(){
 
 	document.getElementById('open').onclick = function () {
 		ws.send(JSON.stringify({'goto':1}));
+	};
+
+	document.getElementById('openAndPause').onclick = function () {
+		ws.send(JSON.stringify({'goto':2}));
 	};
 
 	document.getElementById('close').onclick = function () {
@@ -196,7 +200,7 @@ $(document).ready(function(){
 		};
 	};
 
-	function getValenceSettings(){
+	function getValenceStatus(){
 		ws.send(JSON.stringify({'get':'status'}));
 	};
 });

@@ -58,7 +58,7 @@ class MotorController(Thread):
 		self.powerEasing = 0.75
 		self.m1Power = 0
 		self.m2Power = 0
-		self.powerLimit = 400
+		self.powerLimit = 150
 		self.powerScalar = 2.0
 		self.sigmoidFunction = 2
 		self.targetOpen = 5500
@@ -76,6 +76,7 @@ class MotorController(Thread):
 		self.tLast = 0
 		self.tRemaining = 0
 		self.progress = 0
+		self.pauseOnOpen = False # flag to run self.pause() on arrival at OPEN_HOLD
 		self.pauseOnClose = False # flag to run self.pause() on arrival at CLOSE_HOLD
 		self.machineState = None
 		self.lastMachineState = 0
@@ -85,6 +86,9 @@ class MotorController(Thread):
 		self.applySettings(self.loadDefaults())
 		self.shutdown = False
 		if DEBUG: print('[+] Completed initizlization of MotorController instance.')
+
+#------------------------------------------------------------------------
+# callbacks for Decoder object
 
 	def m1Callback(self, value):
 		if self.m1Flipped:
@@ -99,7 +103,7 @@ class MotorController(Thread):
 			self.m2Position -= value
 
 #------------------------------------------------------------------------
-# shutdown procedure
+# start up, stop, pause, resume, Goto
 
 	def startup(self):
 		if DEBUG: print('[*] Startup')
@@ -178,6 +182,11 @@ class MotorController(Thread):
 			if DEBUG: print('[*] Going to OPEN')
 			self.machineState = OPEN
 			self.tFinal = self.tCurrent + self.openDuration * (1-self.progress)
+		elif int(position) == OPEN_HOLD:
+			if DEBUG: print('[*] Going to OPEN_HOLD')
+			self.machineState = OPEN
+			self.tFinal = self.tCurrent + self.openDuration * (1-self.progress)
+			self.pauseOnOpen = True
 		elif int(position) == CLOSE:
 			if DEBUG: print('[*] Going to CLOSE')
 			self.machineState = CLOSE
@@ -308,13 +317,13 @@ class MotorController(Thread):
 				elif param == 'closeHoldDuration':
 					self.closeHoldDuration = self.constrain(float(value),5,30)
 				elif param == 'targetOpen':
-					self.targetOpen = int(self.constrain(int(value),0,10000))
+					self.targetOpen = int(self.constrain(int(value),0,16800))
 				elif param == 'targetClose':
-					self.targetClose = int(self.constrain(int(value),-1000,1000))
+					self.targetClose = int(self.constrain(int(value),-4200,4200))
 				elif param == 'm1Offset':
-					self.m1Offset = int(self.constrain(int(value),-500,500))
+					self.m1Offset = int(self.constrain(int(value),-8400,8400))
 				elif param == 'm2Offset':
-					self.m2Offset = int(self.constrain(int(value),-500,500))
+					self.m2Offset = int(self.constrain(int(value),-8400,8400))
 				elif param == 'mPumpSpeed':
 					self.mPumpSpeed = self.constrain(float(value),0.0,1.0)
 				elif param == 'sigmoidFunction':
@@ -399,6 +408,9 @@ class MotorController(Thread):
 				self.progress = 1 - ( self.tRemaining / self.openDuration )
 				self.target = (self.sigmoid(self.progress, self.sigmoidFunction) * (self.targetOpen - self.targetClose)) + self.targetClose
 		elif self.machineState == OPEN_HOLD:
+			if self.pauseOnOpen:
+				self.pause()
+				self.pauseOnOpen = False
 			if self.tCurrent >= self.tFinal:
 				self.tFinal = self.tCurrent + self.closeDuration
 				self.machineState = CLOSE
@@ -413,7 +425,7 @@ class MotorController(Thread):
 				self.progress = 1 - ( self.tRemaining / self.closeDuration )
 				self.target = (self.sigmoid(1 - self.progress, self.sigmoidFunction) * (self.targetOpen - self.targetClose)) + self.targetClose
 		elif self.machineState == CLOSE_HOLD:
-			if self.pauseOnClose == True:
+			if self.pauseOnClose:
 				self.pause()
 				self.pauseOnClose = False
 			if self.tCurrent >= self.tFinal:
