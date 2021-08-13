@@ -1,5 +1,5 @@
 <span id="top"></span>
-# Valence Guide
+# 7s7z1s2z Guide
 
 * [Startup and Shutdown](#startup-and-shutdown)
 * [Hardware Overview](#hardware-overview)
@@ -17,7 +17,7 @@
 1. Plug the installation to power it on.
 1. Wait for it to boot.
 1. Connect to the same network the installation is connected to.
-1. In a web browser (will not work on mobile), navigate to: `https://valence.local`
+1. In a web browser (will not work on mobile), navigate to: `https://7s7z1s2z.local`
 1. Log in using supplied credentials.
 1. Click `ON` in the "Pump:" section.
 1. Load the installation with liquid soap.
@@ -27,7 +27,7 @@
 ### Shutdown
 
 1. Connect to the same network the installation is connected to.
-1. In a web browser (will not work on mobile), navigate to: `https://valence.local`
+1. In a web browser (will not work on mobile), navigate to: `https://7s7z1s2z.local`
 1. Log in using supplied credentials.
 1. Click `CLOSE & HOLD` in the "Go To:" section
 1. Drain the liquid soap from the installation.
@@ -155,13 +155,13 @@ Green			Ground		GND (symbol)
 
 * Debian Linux RaspiOS
 * Wireguard VPN
-* Main Valence `server.py` script
+* Main 7s7z1s2z `server.py` script
 	* `MotorControl` python class defined in `motor_control.py`
 		* `Decoder` class defined in `rotary_encoder.py`
 	* Tornado Web Application
 		* Assets located in `static/` and `template/` directories
 * Install, update, and uninstall bash scripts.
-* `systemd` unit descriptor for `valence.service`
+* `systemd` unit descriptor for `7s7z1s2z.service`
 
 ### Python Dependencies
 
@@ -171,11 +171,11 @@ Green			Ground		GND (symbol)
 
 ### RaspiOS
 
-* Web Application is located at `https://valence.local` when accessing from the same network. Does not need the internet to run, but internet is required for remote management.
+* Web Application is located at `https://7s7z1s2z.local` when accessing from the same network. Does not need the internet to run, but internet is required for remote management.
 * Wireguard VPN permits secure remote access as long as the Raspberry Pi is connected to the internet.
 * Password Login is Enabled for `ssh` user `membrane`
 * `ssh` login by key is also possible locally and remotely
-* `systemd` is used to manage the startup and shutdown of the software running the sculpture via `valence.service`.
+* `systemd` is used to manage the startup and shutdown of the software running the sculpture via `7s7z1s2z.service`.
 
 ### Wireguard VPN
 
@@ -185,7 +185,7 @@ Green			Ground		GND (symbol)
 
 ### Main `server.py` Script
 
-* Executed by `valence.service` at boot.
+* Executed by `7s7z1s2z.service` at boot.
 * Creates and instance of `MotorController` and `Tornado Web Application` server. 
 * The HTTP(S) server is managed by Tornado's IOLoop.
 * The `MotorController` instance runs in a separate thread. Full asynchronous management `asyncio` is a place where the code and be optimized in the future.
@@ -234,7 +234,7 @@ Provides all the resources necessary to control the main gear head motors and th
 <span id="login"></span>
 ### Login
 
-* Navigate to `valence.local`
+* Navigate to `7s7z1s2z.local`
 * You will likely see a warning from your browser that the certificate is invalid. Make an exception to access the page using the options provided by your browser.
 
 ![](images/Login.png)
@@ -251,7 +251,7 @@ Provides all the resources necessary to control the main gear head motors and th
 * `Current Status` section relies on websockets to poll and update the values seen here. They are a reflection of the current parameters governing the behaviors of the installation.
 * `Change Settings` section relies on websockets to push values entered here to the installation.
 * `logout` ends the session and requires the user to log back in again. Sessions are valid only for 24 hours. Logging out at the end of each session is highly recommended to ensure security for the safety of the sculpture and visitors.
-*  `Websocket status:` indicates whether the sculpture is connected to the `Valence Control Panel` web page. `Current Status` and `Change Settings` require the status to be `Connected`
+*  `Websocket status:` indicates whether the sculpture is connected to the `7s7z1s2z Control Panel` web page. `Current Status` and `Change Settings` require the status to be `Connected`
 
 
 <span id="current-status"></span>
