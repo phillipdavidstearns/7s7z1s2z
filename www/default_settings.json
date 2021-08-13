@@ -3,7 +3,7 @@
     "m1Flipped": true,
     "m2Flipped": false,
     "powerEasing": 0.75,
-    "powerLimit": 400,
+    "powerLimit": 150,
     "powerScalar": 2.0,
     "sigmoidFunction": 2,
     "targetOpen": 5500,

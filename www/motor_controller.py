@@ -10,6 +10,7 @@ import sys
 import os
 import json
 import asyncio
+import pigpio
 
 # global constants
 
@@ -39,8 +40,8 @@ class MotorController(Thread):
 		self.loopDelay = 0.01
 		self.timer = None # used to create precision timed loop for self.MotionControl()
 		if DEBUG: print('[*] Setting up dual_g2_hpmd_rpi module')
-		self.GPIO = dual_g2_hpmd_rpi._pi
-		self.GPIO.set_PWM_frequency(4,8000)
+		self.GPIO = pigpio.pi() #spin up a new pigpio Object... hope there are no conflicts
+		self.GPIO.set_PWM_frequency(PUMP_PWM_PIN,8000)
 		self.GPIO.set_PWM_dutycycle(PUMP_PWM_PIN, 0)
 		self.m1Position = 0
 		self.m2Position = 0
