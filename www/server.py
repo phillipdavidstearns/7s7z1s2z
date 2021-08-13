@@ -12,12 +12,12 @@ from time import sleep
 from motor_controller import MotorController
 from hashlib import sha256
 
-cookie_secret=open("/usr/local/etc/valence/cookie_secret",'r').read().strip()
-credentials=open("/usr/local/etc/valence/credentials",'r').read().strip()
+cookie_secret=open("/usr/local/etc/7s7z1s2z/cookie_secret",'r').read().strip()
+credentials=open("/usr/local/etc/7s7z1s2z/credentials",'r').read().strip()
 
 class BaseHandler(RequestHandler):
 	def get_current_user(self):
-		return self.get_secure_cookie("valence_user",max_age_days=1)
+		return self.get_secure_cookie("7s7z1s2z_user",max_age_days=1)
 
 class LoginHandler(BaseHandler):
 	def get(self):
@@ -29,14 +29,14 @@ class LoginHandler(BaseHandler):
 		hashed_credentials = sha256(submitted_credentials.encode('utf-8')).hexdigest()
 		if hashed_credentials == credentials:
 			print("[+] Successful Authentication")
-			self.set_secure_cookie("valence_user", self.get_argument("username"),expires_days=1)
+			self.set_secure_cookie("7s7z1s2z_user", self.get_argument("username"),expires_days=1)
 		else:
 			print("[!] Failed Authentication Attempt")
 		self.redirect(self.get_argument("next", "/"))
 
 class LogoutHandler(BaseHandler):
     def get(self):
-        self.clear_cookie("valence_user")
+        self.clear_cookie("7s7z1s2z_user")
         self.redirect(self.get_argument("next", "/"))
 
 class MainHandler(BaseHandler):
@@ -112,8 +112,8 @@ if __name__ == "__main__":
 		application.listen(80)
 		http_server = HTTPServer(application,
 			ssl_options = {
-			  "certfile":"/etc/ssl/certs/valence.crt",
-			  "keyfile":"/etc/ssl/certs/valence.key"
+			  "certfile":"/etc/ssl/certs/7s7z1s2z.crt",
+			  "keyfile":"/etc/ssl/certs/7s7z1s2z.key"
 			}
 		)
 		http_server.listen(443)

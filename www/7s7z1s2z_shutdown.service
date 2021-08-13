@@ -1,0 +1,15 @@
+[Unit]
+Description=Shutdown 7s7z1s2z
+Documentation=https://github.com/phillipdavidstearns/7s7z1s2z
+Requires=network.target pigpiod.service
+DefaultDependencies=no
+Before=shutdown.target reboot.target halt.target
+
+[Service]
+Type=oneshot
+RemainAfterExit=true
+ExecStart=/bin/true
+ExecStop=/usr/bin/systemctl stop 7s7z1s2z.service
+
+[Install]
+WantedBy=multi-user.target

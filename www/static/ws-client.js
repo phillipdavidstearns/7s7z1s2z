@@ -15,7 +15,7 @@ $(document).ready(function(){
 		};
 		ws.onopen = function(evt) {
 			$("#ws-status").html("Connected");
-			getStatus = setInterval(getValenceStatus, ws_interval); // get status of the MotorController on an interval
+			getStatus = setInterval(getStatus, ws_interval); // get status of the MotorController on an interval
 			ws.send(JSON.stringify({'get':'loadDefaults'}));
 		};
 		ws.onmessage = function(evt) {
@@ -200,7 +200,7 @@ $(document).ready(function(){
 		};
 	};
 
-	function getValenceStatus(){
+	function getStatus(){
 		ws.send(JSON.stringify({'get':'status'}));
 	};
 });

@@ -1,12 +1,12 @@
 [Unit]
-Description=Valence
-Documentation=https://github.com/phillipdavidstearns/membrane-python
+Description=7s7z1s2z
+Documentation=https://github.com/phillipdavidstearns/7s7z1s2z
 After=network.target
 Requires=pigpiod.service
 
 [Service]
 Type=simple
-ExecStart=/usr/bin/python3 /usr/local/bin/valence/server.py
+ExecStart=/usr/bin/python3 /usr/local/bin/7s7z1s2z/server.py
 RestartSec=5
 TimeoutStartSec=30
 TimeoutSec=60
