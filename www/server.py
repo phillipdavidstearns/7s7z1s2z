@@ -80,11 +80,15 @@ def make_app():
 	return Application(urls, **settings)
 
 def waitUntilClosed(MotorController):
-	mc.goto(3) # Go to CLOSE
-	while not MotorController.machineState == 4: # Wait for MotorController to reach CLOSE_HOLD
-		sleep(0.1)
-	print('[+] Stopping MotorController.')
-	MotorController.stop()
+	if MotorController.machineState == -2:
+		return True
+	else:
+		MotorController.goto(3) # Go to CLOSE
+		while not MotorController.machineState == 4: # Wait for MotorController to reach CLOSE_HOLD
+			sleep(0.1)
+		print('[+] Stopping MotorController.')
+		MotorController.stop()
+		return True
 
 if __name__ == "__main__":
 

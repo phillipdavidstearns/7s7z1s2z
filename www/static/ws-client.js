@@ -31,15 +31,25 @@ $(document).ready(function(){
 				} else if ('settings' in message){
 					if(message['settings']=="applied"){
 						document.getElementById("apply-status").innerHTML=" Settings applied.";
+					} else	if(message['settings']=="error"){
+						document.getElementById("apply-status").innerHTML=" Cannot set when OPENING or CLOSING";
 					} else {
 						console.log(message.settings);
 					};
-				} else if('errors' in message){
+				} else if ('applyOffsets' in message){
+					if (message['applyOffsets'] == "applied"){
+						document.getElementById("offset-status").innerHTML=" Applied";
+						document.getElementById("m1Offset").value = 0
+						document.getElementById("m2Offset").value = 0
+					} else if (message['applyOffsets'] == "error"){
+						document.getElementById("offset-status").innerHTML=" Cannot apply when OPENING or CLOSING";
+					}
+				} else if ('errors' in message){
 					console.log(message['errors']);
 					document.getElementById("apply-status").innerHTML=" Errors applying settings. See Console for details.";	
-				} else if('status' in message){
+				} else if ('status' in message){
 					displayStatus(message['status']);
-				} else if('load' in message){
+				} else if ('load' in message){
 					loadValues(message['load']);
 				};
 			};
@@ -68,6 +78,10 @@ $(document).ready(function(){
 		ws.send(JSON.stringify({'goto':4}));
 	};
 
+	document.getElementById('stop').onclick = function () {
+		ws.send(JSON.stringify({'set':'stop'}));
+	};
+
 	document.getElementById('pause').onclick = function () {
 		ws.send(JSON.stringify({'set':'pause'}));
 	};
@@ -82,6 +96,19 @@ $(document).ready(function(){
 
 	document.getElementById('mPumpOff').onclick = function () {
 		ws.send(JSON.stringify({'set':{'mPumpIsOn':false}}));
+	};
+
+	document.getElementById('setM1Offset').onclick = function () {
+		var value = document.getElementById('m1Offset').value;
+		ws.send(JSON.stringify({'set':{'m1Offset':value}}));
+	};
+	document.getElementById('setM2Offset').onclick = function () {
+		var value = document.getElementById('m2Offset').value;
+		ws.send(JSON.stringify({'set':{'m2Offset':value}}));
+	};
+
+	document.getElementById('applyOffsets').onclick = function () {
+		ws.send(JSON.stringify({'set':'applyOffsets'}));
 	};
 
 	document.getElementById('loadSettings').onclick = function () {
@@ -111,7 +138,9 @@ $(document).ready(function(){
 				if(elements[i].id == "m1Flipped" || elements[i].id == "m2Flipped"){
 					request.set[elements[i].id] = elements[i].checked;
 				} else {
-					request.set[elements[i].id]=elements[i].value;
+					if(!( elements[i].id == "m1Offset" || elements[i].id == "m2Offset")){
+						request.set[elements[i].id]=elements[i].value;
+					};
 				};
 			};
 			ws.send(JSON.stringify(request));
@@ -145,6 +174,9 @@ $(document).ready(function(){
 					var value = String(status[key]);
 					var state = "";
 					switch(value){
+						case "-2":
+							state = "STOPPED";
+							break;
 						case "-1":
 							state = "PAUSED";
 							break;

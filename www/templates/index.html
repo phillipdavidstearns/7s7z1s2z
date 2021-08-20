@@ -21,7 +21,7 @@
 			<hr />
 			<table>
 				<tr>
-					<th>Current Status</th>
+					<th>Current Settings & Status</th>
 					<th>Change Settings</th>
 				</tr>
 				</tr>
@@ -63,13 +63,15 @@
 					</td>
 					<td>
 						<div class="columnRight">
-							<label>Go To:</label><br/>
+							<span class="label">Go To:</span><span> (<code>OPEN</code> or <code>RESUME</code> to start)</span><br />
 							<button id="open">OPEN</button>
 							<button id="close">CLOSE</button><br />
 							<button id="openAndPause">OPEN & HOLD</button>
 							<button id="closeAndPause">CLOSE & HOLD</button><br />
 							<button id="pause">PAUSE</button>
 							<button id="resume">RESUME</button>
+							<hr>
+							<button id="stop">!! EMERGENCY STOP !!</button>
 							<hr>
 							<label>Pump:</label><br/>
 							<button id="mPumpOn">ON</button>
@@ -79,8 +81,9 @@
 							<hr>
 							<label >Motor 1 Flipped:</label><input type="checkbox" id="m1Flipped"><br />
 							<label >Motor 2 Flipped:</label><input type="checkbox" id="m2Flipped"><br />
-							<label>Motor 1 Offset: </label><input type="number" id="m1Offset" min="-250" max="250" /><br />
-							<label>Motor 2 Offset: </label><input type="number" id="m2Offset"  min="-250" max="250" />
+							<label>Motor 1 Offset: </label><input type="number" id="m1Offset" min="-1250" max="1250" /><button id="setM1Offset" />set</button><br />
+							<label>Motor 2 Offset: </label><input type="number" id="m2Offset"  min="-1250" max="1250" /><button id="setM2Offset" />set</button><br />
+							<button id="applyOffsets">apply offsets</button><span id="offset-status"></span>
 							<hr>
 							<!-- <label>Startup Duration: </label><input type="number" id="startupDuration" min="5.0" max="60.0" /><br /> -->
 							<label>Open Duration: </label><input type="number" id="openDuration" min="5.0" max="30.0" /><br />
@@ -101,16 +104,9 @@
 							<!-- <label>Power Limit: </label><input id="powerLimit" type="number" min="0" max="480" size=8 /><br /> -->
 							<!-- <label>Loop Delay: </label><input type="number" id="loopDelay" min="0.005" max=".025" /> -->
 							<hr>
-							<div>
-								<p><span class="warning">WARNING:</span></p>
-								<p>
-									Before making changes to settings using the buttons below, you MUST click either the <code>OPEN & HOLD</code> or <code>CLOSE & HOLD</code> button and wait until "Machine State" = <code>PAUSED</code>.
-								</p>
-								<p>
-									Failure to do so may result in damage to the sculpture and pose an injury risk to visitors!
-								</p>
-							</div>
-							<hr>
+							<p>
+								Before making changes to settings using the buttons below, click either <code>OPEN & HOLD</code> or <code>CLOSE & HOLD</code> and wait until "Machine State" = <code>PAUSED</code>.
+							</p>
 							<p>
 								<button id="apply" class="applyButton">Apply Settings</button><span id="apply-status"></span>
 							</p>

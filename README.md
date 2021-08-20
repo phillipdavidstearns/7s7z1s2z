@@ -129,6 +129,8 @@ White			Encoder 2		PCB W
 
 11. Connect the `V+` and `V-` on the `Power Supply` to the corresponding `V+` and `V-` terminals on the `Driver Shield`
 
+**NOTE: Ensure that the top PCB is seated properly in the header socket below by gently pressing down along the top edge. Do this after making any adjustments to the wiring or (re)positioning of the board**
+
 ![](images/DriverShieldPowerTerminals.jpg)
 
 12. Connect ~120 VAC power to the `Power Supply` using the following chart:

@@ -7,7 +7,7 @@ body, select, input, button {
   font-family: Fira_Mono-Regular;
 }
 
-label, .applyButton, .warning {
+label, .applyButton, .warning, .label {
   font-weight: bold;
 }
 
