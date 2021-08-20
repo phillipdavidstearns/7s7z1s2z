@@ -1,12 +1,13 @@
 <span id="top"></span>
 # 7s7z1s2z Guide
 
-* [Startup and Shutdown](#startup-and-shutdown)
-* [Hardware Overview](#hardware-overview)
-* [Hardware Setup](#hardware-setup)
-* [Software Overview](#software-overview)
-* [Using the Web Application](#using-the-web-application)
-* [Resources](#additional-resources)
+* [Startup and Shutdown](#startup-and-shutdown) - Day to Day Operation
+* [Hardware Overview](#hardware-overview) - To get familiar with the parts and terminology
+* [Hardware Setup](#hardware-setup) - How everything is put together
+* [Software Overview](#software-overview) - Under the hood a little
+* [Using the Web Application](#using-the-web-application) - Connecting, controlling and making changes to settings
+* [Troubleshooting](#troubleshooting) - Common things that might go wrong
+* [Resources](#additional-resources) - Notes and other things
 
 <span id="startup-and-shutdown"></span>
 ## Startup and Shutdown Procedure [(top)](#top)
@@ -58,6 +59,8 @@
 <span id="hardware-setup"></span>
 ## Hardware Setup [(top)](#top)
 
+**NOTE: Before wiring up the installation, complete these steps and proceed to the [Using the Web Application](#using-the-web-application) to test that everything is wired properly and running smoothly**
+
 ![](images/Tools.jpg)
 
 Before starting, make sure that all connection to VAC 120 mains power are disconnected.
@@ -96,10 +99,12 @@ Before starting, make sure that all connection to VAC 120 mains power are discon
 1. Twist the conductors to make a tight bundle
 1. Tin conductors with solder
 1. Trim conductors to ~2mm
-1. Open terminal block with screw driver by screwing CCW
+1. Open terminal block completely with screw driver by screwing CCW (should hear/feel a slight click when end is reached) 
 1. Insert tinned and trimmed wire ends into the terminal block. (Leave no conductor material exposed)
 1. Close the block with screw driver by screwing CW until tight
 1. Give a gentle tug to ensure the connection is secure
+
+**NOTE: The Color of the wires no longer matches the labels on the terminal blocks. Please refer to the table below to match existing wire colors to their proper terminals. Contact the Technical Lead for clarification.**
 
 ```
 Motor Wire Color Code:
@@ -147,7 +152,7 @@ Green			Ground		GND (symbol)
 
 ![](images/PowerSupply.jpg)
 
-1. **Double check that all connections are correct!**
+1. **Double check that ALL connections are correct!**
 2. Connect the power supply to mains power when ready to proceed to testing and configuration.
 
 <span id="software-overview"></span>
@@ -162,8 +167,9 @@ Green			Ground		GND (symbol)
 		* `Decoder` class defined in `rotary_encoder.py`
 	* Tornado Web Application
 		* Assets located in `static/` and `template/` directories
-* Install, update, and uninstall bash scripts.
+* Install and uninstall bash scripts.
 * `systemd` unit descriptor for `7s7z1s2z.service`
+* `systemd` unit descriptor for `7s7z1s2z_shutdown.service`
 
 ### Python Dependencies
 
@@ -198,10 +204,12 @@ Provides all the resources necessary to control the main gear head motors and th
 
 * dependencies: Custom modified `Decoder` class from `rotary_encoder.py`, and `dual_g2_hpmd_rpi` module provided by Pololu.
 * Runs in a thread separate from the main `server.py` thread.
+* Asynchronously handles WebSocket messages
 
 ### Tornado Web Application
 
 * Requires authentication
+* Requires the javascript be enabled
 * Uses self-signed SSL certificates to achieve a secure encrypted HTTPS connection, which may cause mobile devices to reject attempts to create a web socket connection.
 * Uses WebSockets to pass data between the browser and the application
 * Displays current status, updated every second
@@ -227,16 +235,27 @@ Provides all the resources necessary to control the main gear head motors and th
 <span id="using-the-web-application"></span>
 ## Using the Web Application [(top)](#top)
 
+* [Connecting](#connect)
 * [Login](#login)
 * [Control Panel](#control-panel)
 	* [Current Status](#current-status)
 	* [Change Settings](#change-settings)
 	* [Saving and Loading Settings](#saving-and-loading-settings)
 
+<span id="connect"></span>
+### Connecting
+
+1. Ethernet connection can be used to access the device locally. Simply connect an ethernet cable between the Raspberry Pi 4 and your device (laptop/desktop required). This method is recommended when setting up for the first time.
+2. Ethernet should be used to connect to the museum network. Ensure that the ethernet connection is on the same subnet as the WiFi network OR is given an IP address that is accessible from the museum WiFi (non-public/staff only).
+3. WiFi can be configured to connect to the museum WiFi network. In which case, stuff wishing to access the device must be connected to the same network.
+
 <span id="login"></span>
 ### Login
 
-* Navigate to `7s7z1s2z.local`
+* Navigate to `https://7s7z1s2z.local`
+
+![](images/browser.png)
+
 * You will likely see a warning from your browser that the certificate is invalid. Make an exception to access the page using the options provided by your browser.
 
 ![](images/Login.png)
@@ -250,7 +269,7 @@ Provides all the resources necessary to control the main gear head motors and th
 
 ![](images/ControlPanel.png)
 
-* `Current Status` section relies on websockets to poll and update the values seen here. They are a reflection of the current parameters governing the behaviors of the installation.
+* `Current Settings & Status` - This section relies on websockets to poll and update the values seen here. They are a reflection of the current parameters governing the behaviors of the installation.
 * `Change Settings` section relies on websockets to push values entered here to the installation.
 * `logout` ends the session and requires the user to log back in again. Sessions are valid only for 24 hours. Logging out at the end of each session is highly recommended to ensure security for the safety of the sculpture and visitors.
 *  `Websocket status:` indicates whether the sculpture is connected to the `7s7z1s2z Control Panel` web page. `Current Status` and `Change Settings` require the status to be `Connected`
@@ -262,14 +281,14 @@ Provides all the resources necessary to control the main gear head motors and th
 Displays the current status of the sculpture and the settings currently running.
 
 * `Machine State` and `Last Machine State`:
+	* `STOPPED` - Indicates that the `!! EMERGENCY STOP !!` has been pushed.
 	* `STARTUP` - Indicates whether the control program has just been started.
 	* `OPENING` - Sculpture is in the process of opening.
 	* `HOLDING OPEN` - Sculpture is open and holding open.
 	* `CLOSING` - Sculpture is in the process of closing.
 	* `HOLDING CLOSE` - Sculpture is closed and holding closed.
 	* `PAUSED` - Sculpture movement has been suspended by the user.
-	* `N/A` - Unrecognized state that needs to be address by the technical lead.
-	* Notes: Machine State is the CURRENT state and Last State was the state the sculpture was in when the user pressed PAUSE. States progress in order with OPENING following the completion of HOLDING CLOSED.
+	* Notes: Machine State is the CURRENT state and Last State was the state the sculpture was in when the user pressed `PAUSE` or `STOP`. States progress in order with OPENING following the completion of HOLDING CLOSED.
 * `Motor Power`: Value applied to the Driver Shield, min/max range -480/480. (float)
 * `Motor Position`: Encoder event count. 8400/rev (int)
 * `Motor Speed`: Encoder Events / Loop Delay
@@ -287,8 +306,7 @@ Displays the current status of the sculpture and the settings currently running.
 * `Target Open`: Open position expressed as encoder event counts (int)
 * `Target Close`: Closed position expressed as encoder event counts (int)
 *  `Target`: The position the motors are aiming for. This changes based on the progression through each machine state.
-*  `Progress`: Ratio of time elapsed and Duration for the current state. (float) range(0.0 - 1.0)
-*  `Last Progress`: Stored value of Progress at the time when user presses PAUSE
+*  `Progress`: 0.0 = closed, 1.0 = open
 *  `Sigmoid Function`: The currently selected motion smoothing function.
 *  `Loop Delay`: Interval between triggering of the main `MotorController` `motionControl` method. (float)
 
@@ -298,27 +316,26 @@ Displays the current status of the sculpture and the settings currently running.
 * `Go To:` - Clicking buttons immediately change the state of the sculpture. Totally safe to do whenever. 
 	* `OPEN`: opens the sculpture. keeps running without pause. (can be used to start the installation)
 	* `CLOSE`: closes the sculpture keeps running without pause.
-	* `CLOSE & HOLD`: closes the sculpture keeps running and then pauses.
-	* `PAUSE`: halts progress in any state
-	* `RESUME`: resumes progress of the paused state (can be used to start the installation)
+	* `OPEN & HOLD`: opens the sculpture then pauses.
+	* `CLOSE & HOLD`: closes the sculpture then pauses.
+	* `PAUSE`: pauses progress in any state. 
+	* `RESUME`: resumes progress of the `PAUSED` or `STOPPED` (can be used to start the installation).
+
+* `!! EMERGENCY STOP !!`
+	* Issues a command to the MotorController to set motor power to 0.0 and the pump power to 0.0 (hard pause)
+	* Can be exited by clicking `RESUME` only.
+	* **NOTE: This feature was put in place in the event that the motors begin to spin erratically. It may not work under certain circumstances and power may need to be disconnected. It's recommended to have the sculpture on a dedicated breaker or switch that is easily accessible.**
 
 ***
 
-**Warning: Before applying changes to settings below, you MUST:**
-
-Either:
-
-* Check whether the machine has just been booted: `Machine State == PAUSED` AND `Last Machine State == STARTUP` 
-* Click `CLOSE & HOLD` and wait until `Machine State == PAUSED` AND `Last Machine State == HOLDING CLOSED` 
-
-**Failure to do so may result in damage to the sculpture and/or injury to visitors**
-
-***
+Changes to the settings below cannot be performed when the installation is moving. Best practice is to click either `OPEN & HOLD` or `CLOSE & HOLD` and wait for the "Machine State" to reach `PAUSED`.
 
 **Note: It is possible to edit the parameters below without applying.**
 
 * `Motor Flipped` - checkbox to flip the direction of each motor (boolean)
 * `Motor Offset` - number input to set the offset values for each motor (int)
+	* Use `set` buttons to push the values to the sculpture (`Apply Settings` no longer works here)
+	* Use `apply offsets` when the offsets achieve the desired balance between sides
 * `Durations` - number inputs to set the durations for each state (int). Cannot be negative!!!
 * `Targets` - number inputs to set the OPEN and CLOSE positions (int)
 * `Sigmoid Function` - select input to choose a motion smoothing algorithm. Controls the easing of the motor out of closed and into open positions.
@@ -327,9 +344,7 @@ Either:
 * `Power Limit` - hard limits the power sent to the motors. Increase only if motors are struggling. 480 is the max.
 * `Loop Delay`- controls the timing of the `MotionController` `motionControl` loop. Adjust to smaller value if motion stutters in a rapid pulse or is jerky/jittery. Adjust upwards to free up system resources. Ideally this should not need to be changed.
 
-To apply changes to the above settings, first make sure the machineState is either `HOLDING OPEN` or `STARTUP`. Failure to do so may result in damage to the sculpture.
-
-* Click `Apply Settings`
+* Click `Apply Settings` to push the above settings to the sculpture
 
 <span id="saving-and-loading-settings"></span>
 #### Saving and Loading Settings
@@ -342,8 +357,20 @@ To apply changes to the above settings, first make sure the machineState is eith
 	* Loads the previously saved settings from the current session into the `Change Settings` fields. Click `Apply Settings` to push to the `MotorController`. Think of the above two steps as a multi-step undo.
 * `Load Default Settings`:
 	* Loads the `Default Settings` from disk into the `Change Settings` fields. Click `Apply Settings` to push to the `MotorController`.
-* `Write Applied/Current Settings to Default`:
+* `Write Applied/Current Settings to Default`: 
 	* Writes the current applied settings running on the `Motor Controller` to disk. The sculpture will use these settings when it is restarted.
+	* **NOTE: Make sure that motor offsets have been applied and are zeroed out in the "Current Settings & Status" column.**
+
+<span id="troubleshooting"></span>
+## Troubleshooting [(top)](#top)
+
+### 1. Motors spin erratically
+
+1. 
+
+### 2. Pump motor doesn't spin
+
+1. 
 
 <span id="additional-resources"></span>
 ## Additional Resources [(top)](#top)

@@ -68,7 +68,6 @@ class MotorController(Thread):
 		self.target = 0
 		self.m1Offset = 0
 		self.m2Offset = 0
-		self.startupDuration = 60
 		self.openDuration = 15
 		self.openHoldDuration = 15
 		self.closeDuration = 12.5
@@ -113,7 +112,6 @@ class MotorController(Thread):
 		self.machineState=PAUSED
 		self.progress = 0
 		self.tCurrent = time()
-		self.tFinal = self.tCurrent + self.startupDuration
 		if DEBUG: print('[*] Entering self.motionControl() loop')
 		self.motionControl()
 		if DEBUG: print('[+] Startup finished')

@@ -11,7 +11,6 @@
     "m1Offset": 0,
     "m2Offset": 0,
     "mPumpSpeed": 1.0,
-    "startupDuration": 75.0,
     "openDuration": 15.0,
     "openHoldDuration": 15.0,
     "closeDuration": 12.5,
