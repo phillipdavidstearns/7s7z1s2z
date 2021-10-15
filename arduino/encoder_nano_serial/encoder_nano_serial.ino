@@ -47,12 +47,12 @@ void loop() {
   if (Serial.available()  >= 2) {
     char request = Serial.read();
     char device = Serial.read();
-    if (request == 'a'){ // 
+    if (request == 'a' || device == 'a'){ // 
       while(Serial.available()){
         Serial.read();
       }
-    }
-    else if(request == 'g' && device == '1'){
+      Serial.println("sync");
+    } else if(request == 'g' && device == '1'){
       Serial.println(enc1Count);
     } else if (request == 'g' && device == '2'){
       Serial.println(enc2Count);
