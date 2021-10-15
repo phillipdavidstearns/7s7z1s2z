@@ -14,8 +14,6 @@ import pigpio
 
 # global constants
 
-DEBUG = False
-
 # encoder pins
 M1_ENC1_PIN=4
 M1_ENC2_PIN=17
@@ -32,15 +30,18 @@ OPEN_HOLD = 2
 CLOSE =  3
 CLOSE_HOLD = 4
 
-class MotorController(Thread):
+# testing MotorController as non sublassed Thread.
+class MotorController():
+# class MotorController(Thread):
 	def __init__(self, callback=None):
-		if DEBUG: print('[*] Initializing MotorController instance')
+		self.DEBUG = False
+		if self.DEBUG: print('[*] Initializing MotorController instance')
 		self.defaultsFile="default_settings.json"
 		self.defaultsPath=os.path.dirname(os.path.abspath(__file__))
 		self.settings = {}
 		self.loopDelay = 0.01
 		self.timer = None # used to create precision timed loop for self.MotionControl()
-		if DEBUG: print('[*] Setting up dual_g2_hpmd_rpi module')
+		if self.DEBUG: print('[*] Setting up dual_g2_hpmd_rpi module')
 		self.GPIO = pigpio.pi() #spin up a new pigpio Object... hope there are no conflicts
 		self.GPIO.set_PWM_frequency(PUMP_PWM_PIN,8000)
 		self.GPIO.set_PWM_dutycycle(PUMP_PWM_PIN, 0)
@@ -52,7 +53,7 @@ class MotorController(Thread):
 		self.m2Speed = 0
 		self.m1Flipped = True
 		self.m2Flipped = False
-		if DEBUG: print('[*] Setting up encoders')
+		if self.DEBUG: print('[*] Setting up encoders')
 		self.m1Decoder = Decoder(self.GPIO, M1_ENC1_PIN, M1_ENC2_PIN, self.m1Callback)
 		self.m2Decoder = Decoder(self.GPIO, M2_ENC1_PIN, M2_ENC2_PIN, self.m2Callback)
 		self.mPumpIsOn = False # used to set the status of the pump
@@ -81,12 +82,13 @@ class MotorController(Thread):
 		self.pauseOnClose = False # flag to run self.pause() on arrival at CLOSE_HOLD
 		self.machineState = None
 		self.lastMachineState = 0
-		if DEBUG: print('[*] Initializing thread')
-		Thread.__init__(self)
-		self.daemon = True
+		self.targetPositionWindow = 50
+		# if self.DEBUG: print('[*] Initializing thread')
+		# Thread.__init__(self)
+		# self.daemon = True
 		self.applySettings(self.loadDefaults())
 		self.shutdown = False
-		if DEBUG: print('[+] Completed initizlization of MotorController instance.')
+		if self.DEBUG: print('[+] Completed initizlization of MotorController instance.')
 
 #------------------------------------------------------------------------
 # callbacks for Decoder object
@@ -107,14 +109,16 @@ class MotorController(Thread):
 # start up, stop, pause, resume, Goto
 
 	def startup(self):
-		if DEBUG: print('[*] Startup')
+		if self.DEBUG: print('[*] Startup')
 		self.shutdown = False
 		self.machineState=PAUSED
 		self.progress = 0
-		self.tCurrent = time()
-		if DEBUG: print('[*] Entering self.motionControl() loop')
+		if self.DEBUG: print('[*] Starting Decoders')
+		self.m1Decoder.start() # Decoder is now a Thread and requires starting
+		self.m2Decoder.start() # Decoder is now a Thread and requires starting
+		if self.DEBUG: print('[*] Entering self.motionControl() loop')
 		self.motionControl()
-		if DEBUG: print('[+] Startup finished')
+		if self.DEBUG: print('[+] Startup finished')
 
 	def stop(self):
 		if not self.machineState == STOP:
@@ -122,33 +126,36 @@ class MotorController(Thread):
 				self.lastMachineState = self.machineState
 			self.machineState = STOP
 			self.mPumpIsOn = False
-			if DEBUG: print('[*] Stopping')
+			if self.DEBUG: print('[*] Stopping')
 			self.shutdown = True
 			if self.timer:
-				if DEBUG: print('[*] Cancelling self.timer')
+				if self.DEBUG: print('[*] Cancelling self.timer')
 				self.timer.cancel()
-			if DEBUG: print('[*] Setting motorspeeds to 0.0')
+			if self.DEBUG: print('[*] Setting motorspeeds to 0.0')
 			dual_g2_hpmd_rpi.motors.setSpeeds(0.0,0.0)
 			self.setPumpSpeed(0.0)
-			if DEBUG: print('[+] MotorController stopped')
+			if self.DEBUG: print('[*] Terminating decoder threads')
+			self.m1Decoder.join() # Stopping the Decoder Thread
+			self.m2Decoder.join() # Stopping the Decoder Thread
+			if self.DEBUG: print('[+] MotorController stopped')
 
 
 	def pause(self):
-		if DEBUG: print('[*] Pausing')
+		if self.DEBUG: print('[*] Pausing')
 		if not (self.machineState == PAUSED or self.machineState == STOP):
 			if not self.timer == None:
-				if DEBUG: print('[*] Cancelling self.timer')
+				if self.DEBUG: print('[*] Cancelling self.timer')
 				self.timer.cancel()
-			if DEBUG: print('[*] Setting motorspeeds to 0.0')
+			if self.DEBUG: print('[*] Setting motorspeeds to 0.0')
 			dual_g2_hpmd_rpi.motors.setSpeeds(0.0,0.0)
 			self.lastMachineState = self.machineState
 			self.machineState = PAUSED
-			if DEBUG: print('[+] MotorController paused')
+			if self.DEBUG: print('[+] MotorController paused')
 		else:
-			if DEBUG: print('[-] MotorController already paused')
+			if self.DEBUG: print('[-] MotorController already paused')
 			
 	def resume(self):
-		if DEBUG: print('[*] Resuming')
+		if self.DEBUG: print('[*] Resuming')
 		if self.machineState == PAUSED or self.machineState == STOP:
 			self.shutdown = False
 			tDuration = 0
@@ -177,11 +184,11 @@ class MotorController(Thread):
 				self.lastMachineState = STOP
 			else:
 				self.lastMachineState = PAUSED
-			if DEBUG: print('[*] Entering self.motionControl() loop')
+			if self.DEBUG: print('[*] Entering self.motionControl() loop')
 			self.motionControl()
-			if DEBUG: print('[+] Successfully resumed')
+			if self.DEBUG: print('[+] Successfully resumed')
 		else:
-			if DEBUG: print('[-] MotorController was not paused or stopped')
+			if self.DEBUG: print('[-] MotorController was not paused or stopped')
 
 	def goto(self, position):
 		if not self.machineState == STOP:
@@ -189,27 +196,27 @@ class MotorController(Thread):
 				self.motionControl()
 			self.tCurrent = time()
 			if int(position) == OPEN:
-				if DEBUG: print('[*] Going to OPEN')
+				if self.DEBUG: print('[*] Going to OPEN')
 				self.machineState = OPEN
 				self.tFinal = self.tCurrent + self.openDuration * (1-self.progress)
 				self.pauseOnOpen = False
 			elif int(position) == OPEN_HOLD:
-				if DEBUG: print('[*] Going to OPEN_HOLD')
+				if self.DEBUG: print('[*] Going to OPEN_HOLD')
 				self.machineState = OPEN
 				self.tFinal = self.tCurrent + self.openDuration * (1-self.progress)
 				self.pauseOnOpen = True
 			elif int(position) == CLOSE:
-				if DEBUG: print('[*] Going to CLOSE')
+				if self.DEBUG: print('[*] Going to CLOSE')
 				self.machineState = CLOSE
 				self.tFinal = self.tCurrent + self.closeDuration * self.progress
 				self.pauseOnClose = False
 			elif int(position) == CLOSE_HOLD:
-				if DEBUG: print('[*] Going to CLOSE_HOLD')
+				if self.DEBUG: print('[*] Going to CLOSE_HOLD')
 				self.machineState = CLOSE
 				self.tFinal = self.tCurrent + self.closeDuration * self.progress
 				self.pauseOnClose = True
 			else:
-				if DEBUG: print('[!] Invalid position: %s' % position)
+				if self.DEBUG: print('[!] Invalid position: %s' % position)
 
 #------------------------------------------------------------------------
 # helper functions
@@ -224,7 +231,8 @@ class MotorController(Thread):
 
 		if 'get' in parsed:
 			if parsed['get'] == "status":
-				response = {'status':self.getStatus()}
+				status = self.getStatus()
+				response = {'status': status}
 			elif parsed['get'] == "loadSettings":
 				response = {'load':self.loadSettings()}
 			elif parsed['get'] == "loadDefaults":
@@ -246,7 +254,7 @@ class MotorController(Thread):
 				self.saveDefaults()
 			elif 'mPumpIsOn' in parsed['set']:
 				if not self.machineState == STOP:
-					if DEBUG: print('[*] Got mPumpIsOn %s' % parsed['set']['mPumpIsOn'])
+					if self.DEBUG: print('[*] Got mPumpIsOn %s' % parsed['set']['mPumpIsOn'])
 					self.mPumpIsOn = parsed['set']['mPumpIsOn']
 			elif 'applyOffsets' in parsed['set']:
 				if self.machineState == PAUSED or self.machineState == OPEN_HOLD or self.machineState == CLOSE_HOLD:
@@ -378,7 +386,7 @@ class MotorController(Thread):
 			return {'settings':{'error':'params == None'}}
 	
 	def saveSettings(self):
-		self.settings=self.getSettings()
+		self.settings = self.getSettings()
 
 	def loadSettings(self):
 		return self.settings
@@ -389,7 +397,7 @@ class MotorController(Thread):
 			outfile.write(json.dumps(self.getSettings(), indent = 4))
 
 	def loadDefaults(self):
-		if DEBUG: print('[*] Loading defaults')
+		if self.DEBUG: print('[*] Loading defaults')
 		path = os.path.join(self.defaultsPath, self.defaultsFile)
 		if os.path.exists(path):
 			try:
@@ -398,7 +406,7 @@ class MotorController(Thread):
 			except Exception as e:
 				print("[!] Exception While Loading Defaults: ",e)
 		else:
-			if DEBUG: print('[-] Defaults file not found: %s' % path)
+			if self.DEBUG: print('[-] Defaults file not found: %s' % path)
 			return None
 
 	def constrain(self, _val, _min, _max):
@@ -428,7 +436,7 @@ class MotorController(Thread):
 			self.timer.start()
 		# calculate speed
 		self.m1Speed = (self.m1Position - self.m1LastPosition) / self.loopDelay
-		self.m2Speed = (self.m1Position - self.m1LastPosition) / self.loopDelay
+		self.m2Speed = (self.m2Position - self.m2LastPosition) / self.loopDelay
 		self.m1LastPosition = self.m1Position
 		self.m2LastPosition = self.m2Position
 		# State Machine
@@ -470,23 +478,30 @@ class MotorController(Thread):
 				self.target = self.targetClose
 
 		# Calculate and apply speeds
-		force = self.powerScalar*(self.target - (self.m1Position + self.m1Offset))
-		self.m1Power += self.ease(self.m1Power, force, self.powerEasing)
-		self.m1Power = self.constrain(self.m1Power, -self.powerLimit, self.powerLimit)
-		if self.m1Flipped:
-			self.m1Power *= -1
-		
-		force = self.powerScalar*(self.target - (self.m2Position + self.m2Offset))
-		self.m2Power += self.ease(self.m2Power, force, self.powerEasing)
-		self.m2Power = self.constrain(self.m2Power, -self.powerLimit, self.powerLimit)
-		if self.m2Flipped:
-			self.m2Power *= -1
 		if self.machineState == STOP:
 			self.m1Power=0.0
 			self.m2Power=0.0
-			dual_g2_hpmd_rpi.motors.setSpeeds(0.0, 0.0)
 		else:
-			dual_g2_hpmd_rpi.motors.setSpeeds(self.m1Power, self.m2Power)
+			force = self.powerScalar*(self.target - (self.m1Position + self.m1Offset))
+			self.m1Power += self.ease(self.m1Power, force, self.powerEasing)
+			self.m1Power = self.constrain(self.m1Power, -self.powerLimit, self.powerLimit)
+			if self.m1Flipped:
+				self.m1Power *= -1
+		
+			force = self.powerScalar*(self.target - (self.m2Position + self.m2Offset))
+			self.m2Power += self.ease(self.m2Power, force, self.powerEasing)
+			self.m2Power = self.constrain(self.m2Power, -self.powerLimit, self.powerLimit)
+			if self.m2Flipped:
+				self.m2Power *= -1
+
+		if self.machineState == CLOSE_HOLD or self.machineState == OPEN_HOLD:
+				if abs(self.target - (self.m1Position + self.m1Offset)) < self.targetPositionWindow:
+					self.m1Power=0.0
+				if abs(self.target - (self.m2Position + self.m2Offset)) < self.targetPositionWindow:
+					self.m2Power=0.0
+
+		dual_g2_hpmd_rpi.motors.setSpeeds(self.m1Power, self.m2Power)
+
 		# set pump speed
 		if self.mPumpIsOn:
 			self.setPumpSpeed(self.mPumpSpeed)
@@ -498,6 +513,7 @@ class MotorController(Thread):
 		
 if __name__ == "__main__":
 	mc = MotorController()
+	mc.DEBUG=True
 	try:
 		print(mc.defaultsPath)
 		print(os.path.join(mc.defaultsPath,"default_settings.json"))
@@ -506,7 +522,7 @@ if __name__ == "__main__":
 		mc.saveDefaults()
 		mc.loadDefaults()
 		print("settings: ", mc.getSettings())
-		mc.start()
+		mc.run()
 		while True:
 			mc.setPumpSpeed(random())
 			sleep(1)

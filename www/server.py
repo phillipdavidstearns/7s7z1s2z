@@ -13,7 +13,7 @@ from motor_controller import MotorController
 from hashlib import sha256
 
 cookie_secret=open("/usr/local/etc/7s7z1s2z/cookie_secret",'r').read().strip()
-credentials=open("/usr/local/etc/7s7z1s2z/credentials",'r').read().strip()
+credentials=json.load(open("/usr/local/etc/7s7z1s2z/credentials.json",'r'))
 
 class BaseHandler(RequestHandler):
 	def get_current_user(self):
@@ -27,7 +27,7 @@ class LoginHandler(BaseHandler):
 		password = self.get_argument("password")
 		submitted_credentials = username+":"+password
 		hashed_credentials = sha256(submitted_credentials.encode('utf-8')).hexdigest()
-		if hashed_credentials == credentials:
+		if hashed_credentials == credentials['login']:
 			print("[+] Successful Authentication")
 			self.set_secure_cookie("7s7z1s2z_user", self.get_argument("username"),expires_days=1)
 		else:
@@ -55,7 +55,23 @@ class WSHandler(WebSocketHandler):
 	def on_close(self):
 		print ('[+] WS connection was closed.')
 	async def on_message(self, message): # send WebSocket object and message to MotorController
-		await mc.websocket(self, message)
+		parsed = json.loads(message)
+		if 'poweroff' in parsed and parsed['poweroff']:
+			if sha256(parsed['poweroff'].encode('utf-8')).hexdigest() == credentials['poweroff']:
+				self.write_message(json.dumps({'poweroff':True}))
+				self.close()
+				poweroff()
+			else:
+				self.write_message(json.dumps({'poweroff':False}))
+		elif 'reboot' in parsed and parsed['reboot']:
+			if sha256(parsed['reboot'].encode('utf-8')).hexdigest() == credentials['reboot']:
+				self.write_message(json.dumps({'reboot':True}))
+				self.close()
+				reboot()
+			else:
+				self.write_message(json.dumps({'reboot':False}))
+		else:
+			await mc.websocket(self, message)
 
 class DefaultHandler(RequestHandler):
 	def prepare(self):
@@ -90,6 +106,28 @@ def waitUntilClosed(MotorController):
 		MotorController.stop()
 		return True
 
+def poweroff():
+		print('[!] Power off')
+		print('[*] Shutting down HTTPServer.')
+		http_server.stop()
+		print('[*] Waiting for MotorController to reach CLOSED state.')
+		waitUntilClosed(mc)
+		print('[*] Stopping IOLoop.')
+		main_loop.stop()
+		print('[*] Powering off')
+		os.system('sudo shutdown -h now')
+
+def reboot():
+		print('[!] Reboot')
+		print('[*] Shutting down HTTPServer.')
+		http_server.stop()
+		print('[*] Waiting for MotorController to reach CLOSED state.')
+		waitUntilClosed(mc)
+		print('[*] Stopping IOLoop.')
+		main_loop.stop()
+		print('[*] Rebooting')
+		os.system('sudo reboot')
+
 if __name__ == "__main__":
 
 	# signal callback for handling HUP, INT and TERM signals
@@ -110,7 +148,8 @@ if __name__ == "__main__":
 	try:
 		# Instantiate the MotorController and start it 
 		mc = MotorController()
-		mc.start()
+		mc.DEBUG = True
+		mc.run()
 		# Build the web application and HTTP server
 		application = make_app()
 		application.listen(80)

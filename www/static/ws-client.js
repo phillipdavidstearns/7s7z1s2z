@@ -28,6 +28,18 @@ $(document).ready(function(){
 			if (message != null){
 				if ('message' in message){
 					console.log(message.message);
+				} else if ('reboot' in message){
+					if (message.reboot == true){
+						alert("Rebooting...\nRefresh in 5 minutes.");
+					} else {
+						alert("Invalid password!");
+					}
+				} else if ('poweroff' in message){
+					if (message.poweroff == true){
+						alert("Powering off!\nPower cycle the instalation and refresh in 5 minutes to regain access.");
+					} else {
+						alert("Invalid password!");
+					}
 				} else if ('settings' in message){
 					if(message['settings']=="applied"){
 						document.getElementById("apply-status").innerHTML=" Settings applied.";
@@ -60,6 +72,20 @@ $(document).ready(function(){
 			ws = null;
 			setTimeout(function(){openWebsocket()}, 5000); // if we get disconnected, attempt to reconnect in 5s
 		};
+	};
+
+	document.getElementById('reboot').onclick = function () {
+		var password = prompt("Enter password:\nNote: You will have to refresh browser after reboot completes.");
+		if (password != null){
+			ws.send(JSON.stringify({'reboot':password}));
+		}
+	};
+
+	document.getElementById('poweroff').onclick = function () {
+		var password = prompt("Enter password:\nWARNING: Access to power required to reactivate installation.");
+		if (password != null){
+			ws.send(JSON.stringify({'poweroff':password}));
+		}
 	};
 
 	document.getElementById('open').onclick = function () {
