@@ -1,6 +1,8 @@
 import serial
 from time import time, sleep
 # consider pyserial-asyncio https://tinkering.xyz/async-serial/
+# currently the code is both blocking AND doens't handle serial timeouts...
+
 
 class Encoders():
 	def __init__(self, port='/dev/ttyAMA0', baud=115200, timeout=0):

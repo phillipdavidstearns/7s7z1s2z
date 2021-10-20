@@ -22,7 +22,7 @@ fi
 echo "[*] Copying files into $INSTALL_DIR"
 sudo cp server.py $INSTALL_DIR
 sudo cp motor_controller.py $INSTALL_DIR
-sudo cp rotary_encoder.py $INSTALL_DIR
+sudo cp encoders_serial.py $INSTALL_DIR
 sudo cp default_settings.json $INSTALL_DIR
 sudo cp -r templates $INSTALL_DIR
 sudo cp -r static $INSTALL_DIR

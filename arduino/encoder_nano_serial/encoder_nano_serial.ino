@@ -13,60 +13,18 @@
 //volatile boolean enc1ALast = 0;
 //volatile boolean enc2ALast = 0;
 
+// encoder variables
 volatile long enc1Count = 0;
 volatile long enc2Count = 0;
 volatile int enc1LastState = 0;
 volatile int enc2LastState = 0;
 const int stateTable[] = { 0, 1, -1, 0, -1, 0, 0, 1, 1, 0, 0, -1, 0, -1, 1, 0 };
-volatile byte request = 0;
-volatile byte device = 0;
 
-void setup() {
-  EICRA |= 0b00000101; // set INT0 and INT1 to respond to any voltage changes
-  //  EIMSK |= 0b00000011; // enable INT0 and INT1
-  PCICR |= 0b00000011; // enable pin change interrupts 0 and 1
-  PCMSK0 = 0b00000011; // enable PCI00 (D8, PINB0) & PCI01 (D9, PINB1)
-  PCMSK1 = 0b00000011; // enable PCI10 (ADC0, PINC0) & PCI11 (ADC1, PINC1)
-
-  //  pinMode(ENC1A_PIN, INPUT_PULLUP);
-  //  pinMode(ENC1B_PIN, INPUT_PULLUP);
-  //  pinMode(ENC2A_PIN, INPUT_PULLUP);
-  //  pinMode(ENC2B_PIN, INPUT_PULLUP);
-
-  Serial.begin(115200);   // start serial for output for debugging
-
-  // here in case we need to revert fo INT0 and INT1
-  //  enc1ALast = (PIND >> ENC1A_PIN) & 1;
-  //  enc2ALast = (PIND >> ENC2A_PIN) & 1;
-
-  enc1LastState = (PINB & 1) << 1 | (( PINB >> 1 ) & 1); // PINB0 = D8, PINB1 = D9
-  enc2LastState = (PINC & 1) << 1 | (( PINC >> 1 ) & 1); // PINC0 = ADC0, PINC1 = ADC1
-}
-
-void loop() {
-  if (Serial.available()  >= 2) {
-    char request = Serial.read();
-    char device = Serial.read();
-    if (request == 'a' || device == 'a'){ // 
-      while(Serial.available()){
-        Serial.read();
-      }
-      Serial.println("sync");
-    } else if(request == 'g' && device == '1'){
-      Serial.println(enc1Count);
-    } else if (request == 'g' && device == '2'){
-      Serial.println(enc2Count);
-    } else if (request == 'c' && device == '1'){
-      enc1Count = 0;
-      Serial.println("clr1");
-    } else if (request == 'c' && device == '2'){
-      enc2Count = 0;
-      Serial.println("clr2");
-    } else {
-      Serial.println("err!");
-    }
-  }
-}
+// serial read write variables
+const uint8_t buffSize = 3;
+char buff[buffSize];
+char request = 0;
+char device = 0;
 
 //////////////////////////////////////////////////////////////////////////////
 // Pin Change Interrupt ISRs
@@ -127,10 +85,66 @@ ISR(PCINT1_vect) {
 //////////////////////////////////////////////////////////////////////////////
 // Serial Communication
 
-void serialEvent() {
-  //  for(int i = 0; i < bytes; ++i){
-  //    char buf[4];
-  //    dtostrf(Serial.read(), 4, 0, buf);
-  //    Serial.println(buf);
-  //  }
+void pollSerial(){
+  if (Serial.available() >= 3) {
+    uint8_t bytesRead = Serial.readBytesUntil('\n', buff, buffSize);
+    if (bytesRead == 2) {
+      request = buff[0];
+      device = buff[1];
+      if (request == 'g' && device == '0') {
+        Serial.print(enc1Count);
+        Serial.print('|');
+        Serial.println(enc2Count);
+      } else if (request == 'g' && device == '1') {
+        Serial.println(enc1Count);
+      } else if (request == 'g' && device == '2') {
+        Serial.println(enc2Count);
+      } else if (request == 'c' && device == '0') {
+        enc1Count = 0;
+        enc2Count = 0;
+      } else if (request == 'c' && device == '1') {
+        enc1Count = 0;
+      } else if (request == 'c' && device == '2') {
+        enc2Count = 0;
+      } else {
+        Serial.println("err!");
+      }
+    }
+    // clear the buffer;
+    for (int i = 0; i < buffSize; ++i) {
+      buff[i] = 0;
+    }
+  }
+}
+
+//////////////////////////////////////////////////////////////////////////////
+// Setup
+
+void setup() {
+  EICRA |= 0b00000101; // set INT0 and INT1 to respond to any voltage changes
+  //  EIMSK |= 0b00000011; // enable INT0 and INT1
+  PCICR |= 0b00000011; // enable pin change interrupts 0 and 1
+  PCMSK0 = 0b00000011; // enable PCI00 (D8, PINB0) & PCI01 (D9, PINB1)
+  PCMSK1 = 0b00000011; // enable PCI10 (ADC0, PINC0) & PCI11 (ADC1, PINC1)
+
+  //  pinMode(ENC1A_PIN, INPUT_PULLUP);
+  //  pinMode(ENC1B_PIN, INPUT_PULLUP);
+  //  pinMode(ENC2A_PIN, INPUT_PULLUP);
+  //  pinMode(ENC2B_PIN, INPUT_PULLUP);
+  Serial.setTimeout(1);
+  Serial.begin(115200);   // start serial for output for debugging
+
+  // here in case we need to revert fo INT0 and INT1
+  //  enc1ALast = (PIND >> ENC1A_PIN) & 1;
+  //  enc2ALast = (PIND >> ENC2A_PIN) & 1;
+
+  enc1LastState = (PINB & 1) << 1 | (( PINB >> 1 ) & 1); // PINB0 = D8, PINB1 = D9
+  enc2LastState = (PINC & 1) << 1 | (( PINC >> 1 ) & 1); // PINC0 = ADC0, PINC1 = ADC1
+}
+
+//////////////////////////////////////////////////////////////////////////////
+// Loop
+
+void loop() {
+  pollSerial();
 }

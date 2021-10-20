@@ -1,7 +1,7 @@
 #!/usr/bin/python3
 
 import dual_g2_hpmd_rpi
-from encoders_serial import Encoders
+from rotary_encoder import Decoder
 from threading import Thread, Timer
 from math import log, exp, sin, tanh, pi
 from time import time, sleep
@@ -13,6 +13,12 @@ import asyncio
 import pigpio
 
 # global constants
+
+# encoder pins
+M1_ENC1_PIN=4
+M1_ENC2_PIN=17
+M2_ENC1_PIN=18
+M2_ENC2_PIN=27
 PUMP_PWM_PIN=21
 
 # machineState machine definitions
@@ -25,8 +31,8 @@ CLOSE =  3
 CLOSE_HOLD = 4
 
 # testing MotorController as non sublassed Thread.
-
-class MotorController(Thread):
+class MotorController():
+# class MotorController(Thread):
 	def __init__(self, callback=None):
 		self.DEBUG = False
 		if self.DEBUG: print('[*] Initializing MotorController instance')
@@ -47,9 +53,9 @@ class MotorController(Thread):
 		self.m2Speed = 0
 		self.m1Flipped = True
 		self.m2Flipped = False
-		if self.DEBUG: print('[*] Initializing up encoders')
-		self.encoders = Encoders()
-		self.encoders.start()
+		if self.DEBUG: print('[*] Setting up encoders')
+		self.m1Decoder = Decoder(self.GPIO, M1_ENC1_PIN, M1_ENC2_PIN, self.m1Callback)
+		self.m2Decoder = Decoder(self.GPIO, M2_ENC1_PIN, M2_ENC2_PIN, self.m2Callback)
 		self.mPumpIsOn = False # used to set the status of the pump
 		self.mPumpSpeed = 0.0
 		self.powerEasing = 0.75
@@ -77,12 +83,27 @@ class MotorController(Thread):
 		self.machineState = None
 		self.lastMachineState = 0
 		self.targetPositionWindow = 50
-		if self.DEBUG: print('[*] Initializing thread')
-		Thread.__init__(self)
-		self.daemon = True
+		# if self.DEBUG: print('[*] Initializing thread')
+		# Thread.__init__(self)
+		# self.daemon = True
 		self.applySettings(self.loadDefaults())
 		self.shutdown = False
 		if self.DEBUG: print('[+] Completed initizlization of MotorController instance.')
+
+#------------------------------------------------------------------------
+# callbacks for Decoder object
+
+	def m1Callback(self, value):
+		if self.m1Flipped:
+			self.m1Position += value
+		else:
+			self.m1Position -= value
+
+	def m2Callback(self, value):
+		if self.m2Flipped:
+			self.m2Position += value
+		else:
+			self.m2Position -= value
 
 #------------------------------------------------------------------------
 # start up, stop, pause, resume, Goto
@@ -92,6 +113,9 @@ class MotorController(Thread):
 		self.shutdown = False
 		self.machineState=PAUSED
 		self.progress = 0
+		if self.DEBUG: print('[*] Starting Decoders')
+		self.m1Decoder.start() # Decoder is now a Thread and requires starting
+		self.m2Decoder.start() # Decoder is now a Thread and requires starting
 		if self.DEBUG: print('[*] Entering self.motionControl() loop')
 		self.motionControl()
 		if self.DEBUG: print('[+] Startup finished')
@@ -110,8 +134,9 @@ class MotorController(Thread):
 			if self.DEBUG: print('[*] Setting motorspeeds to 0.0')
 			dual_g2_hpmd_rpi.motors.setSpeeds(0.0,0.0)
 			self.setPumpSpeed(0.0)
-			if self.DEBUG: print('[*] Terminating encoders')
-			self.encoders.stop() # Stopping the Decoder Thread
+			if self.DEBUG: print('[*] Terminating decoder threads')
+			self.m1Decoder.join() # Stopping the Decoder Thread
+			self.m2Decoder.join() # Stopping the Decoder Thread
 			if self.DEBUG: print('[+] MotorController stopped')
 
 
@@ -196,7 +221,6 @@ class MotorController(Thread):
 #------------------------------------------------------------------------
 # helper functions
 	
-	# may keep this as synchronous and run in executor or run_coroutine_threadsafe() from server
 	async def websocket(self, websocket, request):
 		parsed={}
 		response={}
@@ -204,6 +228,7 @@ class MotorController(Thread):
 			parsed = json.loads(request)
 		except Exception as e:
 			print("JSON parsing Exception: ",e)
+
 		if 'get' in parsed:
 			if parsed['get'] == "status":
 				status = self.getStatus()
@@ -234,15 +259,16 @@ class MotorController(Thread):
 			elif 'applyOffsets' in parsed['set']:
 				if self.machineState == PAUSED or self.machineState == OPEN_HOLD or self.machineState == CLOSE_HOLD:
 					if self.machineState == OPEN_HOLD or self.lastMachineState == OPEN_HOLD:
-						# self.m1Offset = 0
-						# self.m2Offset = 0
-						# self.m1Position = self.targetOpen
-						# self.m2Position = self.targetOpen
-						response['applyOffsets'] = 'go to close, then apply'
+						self.m1Offset = 0
+						self.m2Offset = 0
+						self.m1Position = self.targetOpen
+						self.m2Position = self.targetOpen
+						response['applyOffsets'] = 'applied'
 					elif self.machineState == CLOSE_HOLD or self.lastMachineState == CLOSE_HOLD or self.lastMachineState == STARTUP:
 						self.m1Offset = 0
 						self.m2Offset = 0
-						self.encoders.clearCounts()
+						self.m1Position = self.targetClose
+						self.m2Position = self.targetClose
 						response['applyOffsets'] = 'applied'
 				else:
 					response['applyOffsets'] = 'error'
@@ -408,8 +434,6 @@ class MotorController(Thread):
 		if not self.shutdown:
 			self.timer=Timer(self.loopDelay, self.motionControl)
 			self.timer.start()
-		# get counts from arduino
-		self.m1Position, self.m2Position = self.encoders.getCounts()
 		# calculate speed
 		self.m1Speed = (self.m1Position - self.m1LastPosition) / self.loopDelay
 		self.m2Speed = (self.m2Position - self.m2LastPosition) / self.loopDelay
