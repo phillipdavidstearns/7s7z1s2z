@@ -84,16 +84,14 @@ Before starting, make sure that all connection to VAC 120 mains power are discon
 
 * Fit the Custom PCB on the `Driver Shield` taking care to align ALL header pins with ALL header holes. Press firmly in place.
 
-![](images/PCBMount.jpg)
+![](PCB_rev_2/PCB_align.jpg)
+![](PCB_rev_2/PCB_new_labelled.jpg)
 
-* Connect `Green (-)` and `Blue (+)` wires from the `Driver Shield` to the corresponding 2-connection `Terminal Block`. Screw tight with precision flat head screw driver and tug gently to ensure they're secure.
+* Visually inspect the space between the PCB and the components beneath it. There should be zero contact with anything beneath, especially if it is metal.
 
-![](images/PCBPower.jpg)
+### Wiring
 
-* Connect the `Red (+)` and `Clear (-)` wires from the `Driver Shield` to the `VM` and `GROUND (Symbol)` terminal block.
-* Connect the `Gear Motors`, M1 and M2, the their corresponding terminal blocks using the following pinout:
-
-**NOTE: Be sure to strip, tin, and trim wires (if necessary) so that they can be cleanly inserted and secured into the terminal blocks**
+**NOTE: Before you begin wiring Be sure to strip, tin, and trim wires (if necessary) so that they can be cleanly inserted and secured into the terminal blocks**
 
 1. Strip insulation off the ends
 1. Twist the conductors to make a tight bundle
@@ -104,37 +102,48 @@ Before starting, make sure that all connection to VAC 120 mains power are discon
 1. Close the block with screw driver by screwing CW until tight
 1. Give a gentle tug to ensure the connection is secure
 
-**NOTE: The Color of the wires no longer matches the labels on the terminal blocks. Please refer to the table below to match existing wire colors to their proper terminals. Contact the Technical Lead for clarification.**
-
 ```
-Motor Wire Color Code:
-
-==============================================
-POWER (Black 2-conductor)
+MOTOR ENCODERS (Grey 4-conductor)
 ----------------------------------------------
 Wire Color		Function		Terminal Block
 ----------------------------------------------
-Black (ribbed)	Motor +V		Motor Driver 1/2+
-Black (smooth)	Motor GND		Motor Driver 1/2-
+Black			Encoder GND		PCB +
+Red				Encoder +5V		PCB -
+Yellow			Encoder 1		PCB A
+White			Encoder 2		PCB B
+```
 
-==============================================
-ENCODER (Grey 4-conductor)
+* Connect `Green (-)` and `Blue (+)` wires from the `Driver Shield` to the corresponding 2-connection `Terminal Block`. Screw tight with precision flat head screw driver and tug gently to ensure they're secure.
+
+![](images/PCBPower.jpg)
+
+* Connect the wires for the `Motor 1 Encoder` as shown below.
+
+![](PCB_rev_2/PCB_new_enc1.jpg)
+
+* Connect the wires for the `Motor 2 Encoder` as shown below.
+
+![](PCB_rev_2/PCB_new_enc2.jpg)
+
+* Connect the wires for the `Pump Motor` as shown below.
+
+![](PCB_rev_2/PCB_new_pump.jpg)
+
+**NOTE:** 
+
+* **Ensure that the top PCB is seated properly in the header socket below by gently pressing down along the top edge. Do this after making any adjustments to the wiring or (re)positioning of the board**
+* **Visually inspect the space between the PCB and the components beneath it. There should be zero contact with anything beneath, especially if it is metal.**
+* **Visually inspect each terminal block connection to ensure that there are no exposed conductors, frayed wires, anything that might cause a short.**
+* **Check terminal block connections using needle nose pliers, give each wire a gentle tug to ensure that is firmly secure**
+
+```
+MOTOR POWER (for each motor)
 ----------------------------------------------
 Wire Color		Function		Terminal Block
 ----------------------------------------------
-Black			Encoder GND		PCB G
-Red				Encoder +5V		PCB B
-Yellow			Encoder 1		PCB Y
-White			Encoder 2		PCB W
+Red				Motor +V		Motor Driver +
+Black			Motor GND		Motor Driver -
 ```
-
-* Connect the `Pump Motor` to `M+` and `M-` terminal blocks for the Pump motor.
-
-![](images/PCBOverview.jpg)
-
-11. Connect the `V+` and `V-` on the `Power Supply` to the corresponding `V+` and `V-` terminals on the `Driver Shield`
-
-**NOTE: Ensure that the top PCB is seated properly in the header socket below by gently pressing down along the top edge. Do this after making any adjustments to the wiring or (re)positioning of the board**
 
 ![](images/DriverShieldPowerTerminals.jpg)
 

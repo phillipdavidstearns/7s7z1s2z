@@ -13,8 +13,6 @@ class Decoder(Thread):
 
 		self.levA = 0
 		self.levB = 0
-		self.pnc = 0 # previous next code
-		self.encoderState = 0
 
 		self.lastGpio = None
 
@@ -26,8 +24,6 @@ class Decoder(Thread):
 
 		self.cbA = self.pi.callback(gpioA, pigpio.EITHER_EDGE, self._pulse)
 		self.cbB = self.pi.callback(gpioB, pigpio.EITHER_EDGE, self._pulse)
-		# self.valid_pnc_table = [ 0, 1, 1, 0, 1, 0, 0, 1, 1, 0, 0, 1, 0, 1, 1, 0 ]
-		# self.pnc_table = [ 0, 1, -1, 0, -1, 0, 0, 1, 1, 0, 0, -1, 0, -1, 1, 0 ]
 		
 		Thread.__init__(self)
 		self.daemon = True
@@ -37,20 +33,6 @@ class Decoder(Thread):
 			self.levA = level
 		else:
 			self.levB = level
-
-		# encoder debouncing based on https://www.best-microcontroller-projects.com/rotary-encoder.html
-		# seems to work well enough for testing
-		# self.pnc = ( self.pnc << 2 ) & 12 | (self.levA & 1) << 1 | (self.levB & 1)
-		# self.callback(self.pnc_table[self.pnc])
-
-		# This is the "improved" debounce that first looks for a valid state, then determines direction
-		# Didn't work well
-		# if(self.valid_pnc_table[self.pnc]):
-		# 	self.encoderState = ( self.encoderState << 4 ) | self.pnc
-		# 	if self.encoderState & 0xff == 0x2b:
-		# 		self.callback(-1)
-		# 	elif self.encoderState & 0xff == 0x17:
-		# 		self.callback(1)
 
 		if gpio != self.lastGpio: # debounce
 			self.lastGpio = gpio
