@@ -63,9 +63,7 @@ Left: Old PCB. Right: New PCB.
 
 ![](PCB_new_enc2.jpg)
 
-* Connect the wires for the `Pump Motor` as shown below.
-
-![](PCB_new_pump.jpg)
+* The `Pump Motor` now runs on a completely separate circuit. For the SFMOMA installation, a 12V 10A power supply was mounted in the ceiling and controlled using a remote controlled relay on the 120VAC connection.
 
 ### Before Powering Up
 

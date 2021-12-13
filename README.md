@@ -14,26 +14,26 @@
 
 ### Startup
 
-1. Complete the [Hardware Setup](#hardware-setup) portion of this guide.
-1. Plug the installation to power it on.
-1. Wait for it to boot.
-1. Connect to the same network the installation is connected to.
-1. In a web browser (will not work on mobile), navigate to: `https://7s7z1s2z.local`
-1. Log in using supplied credentials.
-1. Click `ON` in the "Pump:" section.
-1. Load the installation with liquid soap.
-1. Click `RESUME` or `OPEN` in the "Go To:" section.
-1. Click `logout`
+1. Obtain the sculpture address of the Operator's control panel from IT.
+1. Navigate to the website using Chrome of Firefox.
+1. Log in with the Operator's Credentials
+1. Go through the soap changing ritual
+1. Use remote to turn on Pump
+1. Click `START`
+1. Logout
+
  
 ### Shutdown
 
-1. Connect to the same network the installation is connected to.
-1. In a web browser (will not work on mobile), navigate to: `https://7s7z1s2z.local`
-1. Log in using supplied credentials.
-1. Click `CLOSE & HOLD` in the "Go To:" section
-1. Drain the liquid soap from the installation.
-1. Click `OFF` in the "Pump:" section
-1. Click `logout` 
+1. Log in with the Operator's Credentials
+1. Click `STOP` at any point and wait for the sculpture to close
+1. Use the remote to stop the pump.
+1. Pump soap from dish.
+1. Pump water into dish.
+1. Use the remote to start the pump.
+1. Run to flush soap
+1. Use the remote to stop the pump. 
+1. Logout
 
 <span id="hardware-overview"></span>
 ## Hardware Overview [(top)](#top)
@@ -42,7 +42,7 @@
 
 ### Components:
 
-* [12V 29A DC power supply by Mean Well (LRS-350-12)](https://www.meanwell.com/productPdf.aspx?i=459)
+* 2x [12V 29A DC power supply by Mean Well (LRS-350-12)](https://www.meanwell.com/productPdf.aspx?i=459)
 * [Raspberry Pi4B Single Board Computer](https://www.raspberrypi.org/products/raspberry-pi-4-model-b/)
 * [Pololu Dual G2 High-Power Motor Driver 18v22 for Raspberry Pi](https://www.pololu.com/product/3754)
 * 2x [131:1 Metal Gearmotor 37Dx73L mm 12V with 64 CPR Encoder (Helical Pinion)](https://www.pololu.com/product/4756)
@@ -102,6 +102,12 @@ Before starting, make sure that all connection to VAC 120 mains power are discon
 1. Close the block with screw driver by screwing CW until tight
 1. Give a gentle tug to ensure the connection is secure
 
+#### Connecting the Pump
+
+* The `Pump Motor` now runs on a completely separate circuit. For the SFMOMA installation, a 12V 10A power supply was mounted in the ceiling and controlled using a remote controlled relay on the 120VAC connection.
+
+### Connecting the Encoders
+
 ```
 MOTOR ENCODERS (Grey 4-conductor)
 ----------------------------------------------
@@ -125,16 +131,14 @@ White			Encoder 2		PCB B
 
 ![](PCB_rev_2/PCB_new_enc2.jpg)
 
-* Connect the wires for the `Pump Motor` as shown below.
-
-![](PCB_rev_2/PCB_new_pump.jpg)
-
 **NOTE:** 
 
 * **Ensure that the top PCB is seated properly in the header socket below by gently pressing down along the top edge. Do this after making any adjustments to the wiring or (re)positioning of the board**
 * **Visually inspect the space between the PCB and the components beneath it. There should be zero contact with anything beneath, especially if it is metal.**
 * **Visually inspect each terminal block connection to ensure that there are no exposed conductors, frayed wires, anything that might cause a short.**
 * **Check terminal block connections using needle nose pliers, give each wire a gentle tug to ensure that is firmly secure**
+
+#### Connecting the Power
 
 ```
 MOTOR POWER (for each motor)
@@ -169,21 +173,24 @@ Green			Ground		GND (symbol)
 
 ### Components
 
-* Debian Linux RaspiOS
-* Wireguard VPN
+* Debian Linux RaspiOS - `Linux 7s7z1s2z 5.10.17-v7l+ #1421 SMP Thu May 27 14:00:13 BST 2021 armv7l GNU/Linux`
+* Wireguard VPN Client
 * Main 7s7z1s2z `server.py` script
+	* Configuration files
 	* `MotorControl` python class defined in `motor_control.py`
-		* `Decoder` class defined in `rotary_encoder.py`
+		* `Encoders` class defined in `encoders_serial.py`
 	* Tornado Web Application
 		* Assets located in `static/` and `template/` directories
 * Install and uninstall bash scripts.
 * `systemd` unit descriptor for `7s7z1s2z.service`
 * `systemd` unit descriptor for `7s7z1s2z_shutdown.service`
+* There is an automated configuration script setup using Ansible in the event that setting up replacement or test environments is necessary. Documentation on that forthcoming.
+* Although hardware, the Arduino Nano is running software that is used to count and decode the rotary encoders to provide position data via Serial to the Raspberry Pi.
 
 ### Python Dependencies
 
 * Python3.7
-* packages: `python3-pigpio`, `python3-tornado`
+* packages: `python3-pigpio`, `python3-tornado`, `python3-serial`, `python3-serial-asyncio`
 * drivers: [https://github.com/pololu/dual-g2-high-power-motor-driver-rpi](https://github.com/pololu/dual-g2-high-power-motor-driver-rpi)
 
 ### RaspiOS
@@ -193,6 +200,7 @@ Green			Ground		GND (symbol)
 * Password Login is Enabled for `ssh` user `membrane`
 * `ssh` login by key is also possible locally and remotely
 * `systemd` is used to manage the startup and shutdown of the software running the sculpture via `7s7z1s2z.service`.
+* `7s7z1s2z_shutdown.service` is meant to provide a clean stop in the event that a system shutdown command is issued.
 
 ### Wireguard VPN
 
@@ -211,13 +219,35 @@ Green			Ground		GND (symbol)
 
 Provides all the resources necessary to control the main gear head motors and the pump motor
 
-* dependencies: Custom modified `Decoder` class from `rotary_encoder.py`, and `dual_g2_hpmd_rpi` module provided by Pololu.
+* dependencies: Custom `Encoders` class from `encoders_serial.py`, and `dual_g2_hpmd_rpi` module provided by Pololu.
 * Runs in a thread separate from the main `server.py` thread.
 * Asynchronously handles WebSocket messages
 
+### Encoders
+
+#### `encoders_serial.py`
+
+This class handles communication between the RPi and the Arduino over Serial in an asynchronous manner. Values can be accessed safely by synchronous code.
+
+* Subclasses threading.Thread
+* Has its own asyncio event loop
+* Reads and writes serial to the Arduino Nano to obtain and clear encoder counts.
+
+#### `encoders-half-count.ino`
+
+Software that uses interrupts to count encoders and serial to communicate the count and clear the count on any data received
+
+* Uses external interrupts `INT0` and `INT1` on pins D2 and D3 respectively. These detect changes on the A pin of each encoder.
+* ISRs manually enabled and defined rather than using `attachInterrupt()`
+* Serial is sent and buffers checked every 10ms.
+	* The output format is `<encoder1Count>|<encoder2Count>\r\n`
+	* Any character received by the Arduino will clear the counts. Only a single `\n` character should be necessary to clear.
+
 ### Tornado Web Application
 
-* Requires authentication
+* Requires authentication!
+	* There are separate accounts setup for Operation and Calibration
+	* Operators should not be allowed to access Calibration unless properly trained.
 * Requires the javascript be enabled
 * Uses self-signed SSL certificates to achieve a secure encrypted HTTPS connection, which may cause mobile devices to reject attempts to create a web socket connection.
 * Uses WebSockets to pass data between the browser and the application
@@ -227,10 +257,12 @@ Provides all the resources necessary to control the main gear head motors and th
 * Components:
 	* `static/favicon.ico` - cute icon for the browser tab
 	* `templates/login.html` - login page
-	* `templates/index.html` - main control panel page
+	* `templates/calibration.html` - calibration control panel page
+	* `templates/operation.html` - operator's control panel page
 	* `static/jquery-3.5.1.min.js` - simplified javascript access/control of DOM elements
 	* `static/style.css` - CSS styling of elements
-	* `static/ws-client.js` - WebSocket
+	* `static/calibration.js` - WebSocket handing for calibration.html
+	* `static/operation.js` - WebSocket handing for operation.html
 	* `static/Fira_Mono/` - font
 * Sets routes for about resources.
 * Defines which actions to be handled and how.
@@ -274,7 +306,15 @@ Provides all the resources necessary to control the main gear head motors and th
 * Successful login loads the `Control Panel`.
 
 <span id="control-panel"></span>
-### Control Panel
+### Operator's Panel
+
+![](images/operation.png)
+
+* `START` will open the sculpture and run the open/close routine until stopped. It can be pressed at any moment.
+* `STOP` will close the sculpture and pause it. It can be pressed at any moment.
+* `!!EMERGENCY STOP!!` is to be pressed in the event the motor movement will cause injury or harm to visitors or the sculpture itself. If pressed, contact Phillip Stearns. Assessment of why it was necessary to use this feature will have to be done to determine whether it's safe to continue.
+
+### Control Panel (Calibration)
 
 ![](images/ControlPanel.png)
 
@@ -303,7 +343,6 @@ Displays the current status of the sculpture and the settings currently running.
 * `Motor Speed`: Encoder Events / Loop Delay
 * `Motor Flipped`: Whether the motor direction is reversed (boolean)
 * `Motor Offset`: Offset Motor Position by N counts (int)
-* `Pump Speed`: Current speed setting for the pump motor (float)
 * `Current Time`: seconds since linux epoch (float)
 * `State End Time`: time when the current machineState should complete (float)
 * `Durations`: time in seconds for how long each machine state should take to complete. (float)
@@ -375,11 +414,30 @@ Changes to the settings below cannot be performed when the installation is movin
 
 ### 1. Motors spin erratically
 
-1. 
+1. Stop the installation immediately.
+	* If the remote is not available to power off, then do so from the control panel.
+	* Contact Phillip Stearns immediately.
+2. Likely causes:
+	* Encoder wires have become disconnected
+		* Check the motor connector
+		* Check the PCB terminal block connections
+	* Someone/thing has pulled hard on the counter weight, causing the motor to break its position lock.
+		* Power off everything, reset to zero, power on.
 
 ### 2. Pump motor doesn't spin
 
-1. 
+1. The Pump is on a remote controlled outlet.
+	* Visually confirm that the outlet switch indicates that it has power and is on (red light) and is responding to button presses.
+	* Check that the power supply (installed in the ceiling) is powering up and outputs 12V DC with the motor disconnected from the supply.
+	* Connect the motor to the 12V DC terminals.
+		* If arcing occurs but no pump movement
+			1. there may be a short somewhere
+			2. the pump may be clogged and preventing the motor from turning
+			3. the motor may have failed
+	* Check the terminals of the pump motor
+		* If 12V DC can be measured at the terminals but no movement is observed
+			* Check the pump for blockage
+			* The motor may have failed
 
 <span id="additional-resources"></span>
 ## Additional Resources [(top)](#top)
