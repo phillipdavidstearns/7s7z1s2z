@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html lang="en">
+	<head>
+		<meta charset="utf-8">
+		<title> 7s7z1s2z Operator's Panel</title>
+		<meta name="description" content="7s7z1s2z by Tauba Auerbach">
+		<meta name="author" content="Phillip David Stearns">
+		<!-- Scripts -->
+		<script src="static/jquery-3.5.1.min.js"></script>
+		<script src="static/operate.js"></script>
+		<!-- CSS -->
+		<link rel="stylesheet" type="text/css" href="static/style.css"/>
+	</head>
+	<body>
+		<div align="center">
+			<h1>7s7z1s2z Operator's Panel</h1><br />
+			<hr>
+			<label>Machine State: </label><span id="machineState-status">...</span>
+			<br>
+			<hr width=300px />
+			<br>
+			<button id="open">START</button>
+			<button id="closeAndPause">STOP</button>
+			<br>
+			<br>
+			<hr width=300px />
+			<br>
+			<br>
+			<br>
+			<br>
+			<button id="stop">!! EMERGENCY STOP !!</button>
+			<p>
+			~ Use ONLY to prevent injury or damage to sculpture ~
+			</p>
+			<br>
+			<br>
+			<br>
+			<br>
+			<hr />
+			Connection status:
+			<br />
+			<div id="ws-status">connecting...</div>
+			<hr>
+			<form action="/logout">
+				<button type="submit" id="logout">logout</button>
+			</form>
+		</div>
+	</body>
+</html>

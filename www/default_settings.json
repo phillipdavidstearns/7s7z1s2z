@@ -2,11 +2,11 @@
     "loopDelay": 0.01,
     "m1Flipped": true,
     "m2Flipped": false,
-    "powerEasing": 0.75,
-    "powerLimit": 150,
-    "powerScalar": 2.0,
+    "powerEasing": 1.0,
+    "powerLimit": 175,
+    "powerScalar": 2.5,
     "sigmoidFunction": 2,
-    "targetOpen": 5500,
+    "targetOpen": 3500,
     "targetClose": 0,
     "m1Offset": 0,
     "m2Offset": 0,
@@ -14,5 +14,5 @@
     "openDuration": 15.0,
     "openHoldDuration": 15.0,
     "closeDuration": 12.5,
-    "closeHoldDuration": 17.5
+    "closeHoldDuration": 15
 }

@@ -17,30 +17,26 @@ credentials=json.load(open("/usr/local/etc/7s7z1s2z/credentials.json",'r'))
 
 class BaseHandler(RequestHandler):
 	def get_current_user(self):
-		return self.get_secure_cookie("7s7z1s2z",max_age_days=1)
+		return self.get_secure_cookie("7s7z1s2z_user",max_age_days=1)
 
 class LoginHandler(BaseHandler):
 	def get(self):
 		self.render("login.html")
 	def post(self):
 		username = self.get_argument("username")
-		if username in credentials['users']:
-			password = self.get_argument("password")
-			submitted_credentials = username+":"+password
-			hashed_credentials = sha256(submitted_credentials.encode('utf-8')).hexdigest()
-			if hashed_credentials == credentials['users'][username]:
-				print("[+] Successful Authentication")
-				self.set_secure_cookie("7s7z1s2z", username, expires_days=1)
-			else:
-				print("[!] Failed Authentication Attempt")
+		password = self.get_argument("password")
+		submitted_credentials = username+":"+password
+		hashed_credentials = sha256(submitted_credentials.encode('utf-8')).hexdigest()
+		if hashed_credentials == credentials['users'][username]:
+			print("[+] Successful Authentication")
+			self.set_secure_cookie("7s7z1s2z_user", self.get_argument("username"),expires_days=1)
 		else:
-			print("[!] Invalid User: ", username)
-		print("[*] Redirecting to /")
+			print("[!] Failed Authentication Attempt")
 		self.redirect(self.get_argument("next", "/"))
 
 class LogoutHandler(BaseHandler):
     def get(self):
-        self.clear_cookie("7s7z1s2z")
+        self.clear_cookie("7s7z1s2z_user")
         self.redirect(self.get_argument("next", "/"))
 
 class MainHandler(BaseHandler):
@@ -51,13 +47,9 @@ class MainHandler(BaseHandler):
 	@authenticated
 	def get(self):
 		print ("[+] HTTP session upgraded to HTTPS.")
-		print ("[+] Current user: ", self.current_user)
-		user = self.current_user.decode('utf-8')
-		if user == 'valence':
-			self.render("calibrate.html")	
-		elif user == 'SFMOMA':
-			self.render("operate.html")
-		
+		print ("[*] Current User: ", self.current_user.decode())
+		self.render("index.html")
+
 class WSHandler(WebSocketHandler):
 	def open(self):
 		print ('[+] WS connection was opened.')
