@@ -45,7 +45,7 @@ class LogoutHandler(BaseHandler):
 
 class MainHandler(BaseHandler):
 	def prepare(self):
-		if self.request.protocol == "http":
+		if self.request.protocol == "http":	
 			print ("[+] HTTP user connected.")
 			self.redirect("https://%s" % self.request.full_url()[len("http://"):], permanent=True)
 	@authenticated
@@ -67,18 +67,18 @@ class WSHandler(WebSocketHandler):
 		parsed = json.loads(message)
 		if 'poweroff' in parsed and parsed['poweroff']:
 			if sha256(parsed['poweroff'].encode('utf-8')).hexdigest() == credentials['poweroff']:
-				self.write_message(json.dumps({'poweroff':True}))
+				await self.write_message(json.dumps({'poweroff':True}))
 				self.close()
 				poweroff()
 			else:
-				self.write_message(json.dumps({'poweroff':False}))
+				await self.write_message(json.dumps({'poweroff':False}))
 		elif 'reboot' in parsed and parsed['reboot']:
 			if sha256(parsed['reboot'].encode('utf-8')).hexdigest() == credentials['reboot']:
-				self.write_message(json.dumps({'reboot':True}))
+				await self.write_message(json.dumps({'reboot':True}))
 				self.close()
 				reboot()
 			else:
-				self.write_message(json.dumps({'reboot':False}))
+				await self.write_message(json.dumps({'reboot':False}))
 		else:
 			await mc.websocket(self, message)
 

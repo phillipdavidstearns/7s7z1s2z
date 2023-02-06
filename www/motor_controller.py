@@ -249,7 +249,7 @@ class MotorController(Thread):
 
 		if websocket and response:
 			try:
-				websocket.write_message(json.dumps(response))
+				await websocket.write_message(json.dumps(response))
 			except Exception as e:
 				print("WebSocket Write Exception: ",e)
 
