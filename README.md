@@ -1,5 +1,9 @@
 <span id="top"></span>
-# 7s7z1s2z Guide
+# 7s7z1s2z
+
+![](images/7S7Z2S1Z-Tauba-Auerbach_CharlesBenton.jpg)
+
+# Installation Guide
 
 * [Startup and Shutdown](#startup-and-shutdown) - Day to Day Operation
 * [Hardware Overview](#hardware-overview) - To get familiar with the parts and terminology
